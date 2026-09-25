@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {SettingsStackParamList} from '../../App';
-import {MaterialCommunityIcons, FontAwesome6, Ionicons} from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, {
   FadeInUp,
   Layout,

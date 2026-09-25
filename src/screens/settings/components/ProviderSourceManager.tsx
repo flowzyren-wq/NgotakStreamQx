@@ -1,13 +1,15 @@
 import AppText from '../../../components/ui/Text';
 import React, {useEffect, useMemo, useState} from 'react';
-import {Linking, Pressable, ScrollView, TextInput, View} from 'react-native';
-import {MaterialCommunityIcons, MaterialIcons} from '@expo/vector-icons';
+import {Pressable, TextInput, View} from 'react-native';
+import Animated, {FadeInUp} from 'react-native-reanimated';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {
   extensionStorage,
   ProviderSource,
 } from '../../../lib/storage/extensionStorage';
 import {createProviderSource} from '../../../lib/utils/helpers';
-import {socialLinks} from '../../../lib/constants';
+
 import {useM3Colors} from '../../../theme/M3PaletteContext';
 import AppDialog from '../../../components/AppDialog';
 import MaterialDialogSurface from '../../../components/ui/MaterialDialogSurface';
@@ -130,7 +132,7 @@ const ProviderSourceManager = ({primary, visible, onSourceChanged}: Props) => {
             <View
               className="h-10 w-10 items-center justify-center"
               style={{
-                backgroundColor: '#171717',
+                backgroundColor: colors.surfaceContainerLow,
                 borderColor: colors.outlineVariant,
                 borderRadius: 15,
                 borderWidth: 1,
@@ -171,7 +173,9 @@ const ProviderSourceManager = ({primary, visible, onSourceChanged}: Props) => {
           accessibilityLabel="Add provider source"
           className="h-16 w-16 items-center justify-center"
           style={({pressed}) => ({
-            backgroundColor: pressed ? colors.surfaceBright : '#171717',
+            backgroundColor: pressed
+              ? colors.surfaceBright
+              : colors.surfaceContainerLow,
             borderColor: primary,
             borderRadius: 20,
             borderWidth: 2,
@@ -214,7 +218,9 @@ const ProviderSourceManager = ({primary, visible, onSourceChanged}: Props) => {
           </Pressable>
         </View>
 
-        <ScrollView nestedScrollEnabled>
+        <Animated.ScrollView
+          entering={FadeInUp.springify().duration(220)}
+          nestedScrollEnabled>
           {sources.map(source => {
             const isSelected = source.author === defaultSource?.author;
             return (
@@ -272,7 +278,7 @@ const ProviderSourceManager = ({primary, visible, onSourceChanged}: Props) => {
               </View>
             );
           })}
-        </ScrollView>
+        </Animated.ScrollView>
       </MaterialDialogSurface>
 
       <MaterialDialogSurface
@@ -310,28 +316,7 @@ const ProviderSourceManager = ({primary, visible, onSourceChanged}: Props) => {
         <AppText className="text-sm font-medium" style={{color: colors.onSurface}}>
           Enter url of your hosted provider source or GitHub author
         </AppText>
-        <AppText
-          className="text-sm mt-[4px]"
-          style={{color: colors.onSurfaceVariant, lineHeight: 20}}>
-          How to create provider{' '}
-          <AppText
-            accessibilityRole="link"
-            style={{color: '#38BDF8', fontSize: 14, lineHeight: 20}}
-            onPress={() => Linking.openURL(socialLinks.github + '#AirFlix')}>
-            here
-          </AppText>
-        </AppText>
-        <AppText
-          className="text-sm mt-[4px]"
-          style={{color: colors.onSurfaceVariant, lineHeight: 20}}>
-          or join Discord for support{' '}
-          <AppText
-            accessibilityRole="link"
-            style={{color: '#38BDF8', fontSize: 14, lineHeight: 20}}
-            onPress={() => Linking.openURL(socialLinks.discord)}>
-            Discord
-          </AppText>
-        </AppText>
+
         <TextInput
           className="h-14 px-4 mt-4"
           style={{
