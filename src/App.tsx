@@ -24,7 +24,8 @@ import SearchResults from './screens/SearchResults';
 import * as SystemUI from 'expo-system-ui';
 // import DisableProviders from './screens/settings/DisableProviders';
 import About from './screens/settings/About';
-import {checkForUpdate} from './screens/settings/Settings';
+import Statistics from './screens/Statistics';
+import AdultSection from './screens/adult/AdultSection';
 import BootSplash from 'react-native-bootsplash';
 import {enableFreeze, enableScreens} from 'react-native-screens';
 import Preferences from './screens/settings/Preference';
@@ -86,6 +87,7 @@ export type HomeStackParamList = {
     isSearch: boolean;
   };
   Webview: {link: string};
+  AdultSection: undefined;
 };
 
 export type RootStackParamList = {
@@ -137,6 +139,11 @@ export type WatchListStackParamList = {
   Info: {link: string; provider?: string; poster?: string};
 };
 
+export type StatsStackParamList = {
+  Statistics: undefined;
+  Info: {link: string; provider?: string; poster?: string};
+};
+
 export type SettingsStackParamList = {
   Settings: undefined;
   Appearance: undefined;
@@ -157,6 +164,7 @@ export type TabStackParamList = {
   HomeStack: undefined;
   SearchStack: undefined;
   WatchListStack: undefined;
+  StatsStack: undefined;
   DownloadsStack: undefined;
 };
 const Tab = createBottomTabNavigator<TabStackParamList>();
@@ -193,6 +201,7 @@ const App = () => {
   const Stack = createNativeStackNavigator<RootStackParamList>();
   const SearchStack = createNativeStackNavigator<SearchStackParamList>();
   const WatchListStack = createNativeStackNavigator<WatchListStackParamList>();
+  const StatsStack = createNativeStackNavigator<StatsStackParamList>();
   const DownloadsStack = createNativeStackNavigator<DownloadsStackParamList>();
   const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
   const hasFirebase =
@@ -384,6 +393,11 @@ const App = () => {
         <HomeStack.Screen name="Info" component={Info} />
         <HomeStack.Screen name="ScrollList" component={ScrollList} />
         <HomeStack.Screen name="Webview" component={WebView} />
+        <HomeStack.Screen
+          name="AdultSection"
+          component={AdultSection}
+          options={{animation: 'fade_from_bottom'}}
+        />
       </HomeStack.Navigator>
     );
   }
@@ -418,6 +432,21 @@ const App = () => {
         <WatchListStack.Screen name="WatchList" component={WatchList} />
         <WatchListStack.Screen name="Info" component={Info} />
       </WatchListStack.Navigator>
+    );
+  }
+
+  function StatsStackScreen() {
+    return (
+      <StatsStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: 'ios_from_right',
+          animationDuration: 200,
+          freezeOnBlur: true,
+        }}>
+        <StatsStack.Screen name="Statistics" component={Statistics} />
+        <StatsStack.Screen name="Info" component={Info} />
+      </StatsStack.Navigator>
     );
   }
 
@@ -549,6 +578,20 @@ const App = () => {
             ),
           }}
         />
+        <Tab.Screen
+          name="StatsStack"
+          component={StatsStackScreen}
+          options={{
+            title: 'Stats',
+            tabBarIcon: ({focused, color, size}) => (
+              <MaterialCommunityIcons
+                name={focused ? 'chart-box' : 'chart-box-outline'}
+                color={color}
+                size={size}
+              />
+            ),
+          }}
+        />
         {!hideDownloadsTab && (
           <Tab.Screen
             name="DownloadsStack"
@@ -569,12 +612,6 @@ const App = () => {
     );
   }
 
-  useEffect(() => {
-    const isPlayStore = Constants.expoConfig?.extra?.isPlayStore;
-    if (!isPlayStore && settingsStorage.isAutoCheckUpdateEnabled()) {
-      checkForUpdate(() => {}, settingsStorage.isAutoDownloadEnabled(), false);
-    }
-  }, []);
 
   if (isInitializing || !fontsLoaded) {
     return null;
@@ -677,7 +714,7 @@ const App = () => {
                   <Stack.Screen
                     name="Player"
                     component={Player}
-                    options={{orientation: 'landscape'}}
+                    options={{orientation: 'default'}}
                   />
                 </Stack.Navigator>
               </NavigationContainer>
