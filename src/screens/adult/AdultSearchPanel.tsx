@@ -10,7 +10,7 @@ type Props = {
   searching: boolean;
   error: string | null;
   results: AdultCard[];
-  searchedTerm: string;
+  searchedTerm: string | null;
   resolvingUrl: string | null;
   onPlay: (card: AdultCard) => void;
 };
