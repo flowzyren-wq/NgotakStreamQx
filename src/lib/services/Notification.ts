@@ -8,10 +8,7 @@ import notifee, {
   AuthorizationStatus,
 } from '@notifee/react-native';
 import {settingsStorage} from '../storage';
-import * as RNFS from '@dr.pogodin/react-native-fs';
-import RNApkInstaller from '@himanshu8443/react-native-apk-installer';
-import * as IntentLauncher from 'expo-intent-launcher';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as Application from 'expo-application';
 import type {DownloadSourceType} from '../zustand/downloadsStore';
 
 type NotificationData = Record<string, string | number | object>;
@@ -64,7 +61,6 @@ class NotificationService {
   private _downloadForegroundId = 'downloadForegroundService';
   private initialized = false;
   private permissionRequest?: Promise<boolean>;
-  private pendingApkInstall?: Promise<void>;
   private readonly notificationOperations = new Map<string, Promise<void>>();
 
   private getAppLaunchPressAction(id = 'default') {
@@ -72,7 +68,9 @@ class NotificationService {
       id,
       // The app launcher is an activity alias, so Notifee's `default`
       // resolution is not reliable. Launch the real activity explicitly.
-      launchActivity: `${RNApkInstaller.packageName}.MainActivity`,
+      launchActivity: `${
+        Application.applicationId || 'id.awoshaaqx.ngotakstreamqx'
+      }.MainActivity`,
       launchActivityFlags: [
         AndroidLaunchActivityFlag.NEW_TASK,
         AndroidLaunchActivityFlag.CLEAR_TOP,
@@ -438,97 +436,6 @@ class NotificationService {
     });
   }
 
-  /**
-   * Helper method to show update available notification
-   */
-  async showUpdateAvailable(
-    title: string,
-    body: string,
-    actions?: Array<{title: string; pressAction: {id: string}}>,
-  ): Promise<void> {
-    await this.displayUpdateNotification({
-      id: 'updateAvailable',
-      title: title,
-      body: body,
-      actions: actions,
-    });
-  }
-
-  private async hasUnknownAppSourcesPermission(): Promise<boolean> {
-    const permission =
-      (await RNApkInstaller.haveUnknownAppSourcesPermission()) as unknown;
-    if (typeof permission === 'boolean') {
-      return permission;
-    }
-    return typeof permission === 'number' && permission < 26;
-  }
-
-  private async requestUnknownAppSourcesPermission(): Promise<boolean> {
-    const packageName = RNApkInstaller.packageName;
-    if (!packageName) {
-      throw new Error('Unable to determine the Airflix Android package name');
-    }
-
-    await IntentLauncher.startActivityAsync(
-      IntentLauncher.ActivityAction.MANAGE_UNKNOWN_APP_SOURCES,
-      {data: `package:${packageName}`},
-    );
-    return this.hasUnknownAppSourcesPermission();
-  }
-
-  private async launchApkInstaller(apkPath: string): Promise<void> {
-    const fileUri = apkPath.startsWith('file://')
-      ? apkPath
-      : `file://${apkPath}`;
-    const contentUri = await FileSystem.getContentUriAsync(fileUri);
-    await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-      data: contentUri,
-      flags: 1, // Intent.FLAG_GRANT_READ_URI_PERMISSION
-      type: 'application/vnd.android.package-archive',
-    });
-  }
-
-  private installUpdateApk(apkPath: string): Promise<void> {
-    if (this.pendingApkInstall) {
-      return this.pendingApkInstall;
-    }
-
-    const installRequest = (async () => {
-      try {
-        let canInstall = await this.hasUnknownAppSourcesPermission();
-        if (!canInstall) {
-          canInstall = await this.requestUnknownAppSourcesPermission();
-        }
-
-        if (!canInstall) {
-          await this.displayUpdateNotification({
-            id: 'downloadComplete',
-            title: 'Install permission required',
-            body: 'Allow Airflix to install unknown apps, then tap to retry',
-            data: {filePath: apkPath, action: 'install'},
-          });
-          return;
-        }
-
-        await this.launchApkInstaller(apkPath);
-        console.log('APK installation initiated successfully');
-      } catch (error) {
-        console.error('APK installation error:', error);
-        await this.displayUpdateNotification({
-          id: 'downloadComplete',
-          title: 'Update installation failed',
-          body: 'Tap to try installing the update again',
-          data: {filePath: apkPath, action: 'install'},
-        });
-      }
-    })();
-
-    this.pendingApkInstall = installRequest.finally(() => {
-      this.pendingApkInstall = undefined;
-    });
-    return this.pendingApkInstall;
-  }
-
   async actionHandler({type, detail}: {type: EventType; detail: EventDetail}) {
     const downloadAction = detail.pressAction?.id;
     if (
@@ -583,25 +490,6 @@ class NotificationService {
       return;
     }
 
-    // Handle app update installation - check for both PRESS and ACTION_PRESS
-    if (
-      (type === EventType.PRESS || type === EventType.ACTION_PRESS) &&
-      (detail.pressAction?.id === 'install' ||
-        detail.notification?.data?.action === 'install')
-    ) {
-      console.log('Install action pressed');
-      const filePath = detail.notification?.data?.filePath;
-      const apkPath = typeof filePath === 'string' ? filePath : undefined;
-      console.log('APK path:', apkPath);
-      const res = apkPath ? await RNFS.exists(apkPath) : false;
-      console.log('APK exists:', res);
-      if (apkPath && res) {
-        console.log('Starting APK installation...');
-        await this.installUpdateApk(apkPath);
-      } else {
-        console.error('APK file not found at path:', apkPath);
-      }
-    }
   }
 
   /**

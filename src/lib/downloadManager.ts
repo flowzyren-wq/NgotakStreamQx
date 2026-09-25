@@ -345,12 +345,14 @@ export const startDownload = async (
       finalDocumentUri: output.finalDocumentUri,
       totalBytes: output.size,
     });
-    await notificationService.showDownloadComplete(
-      record.title,
-      downloadId,
-      record.sourceType,
-      await getDownloadNotificationColor(record),
-    );
+    if (settingsStorage.isNotificationsEnabled()) {
+      await notificationService.showDownloadComplete(
+        record.title,
+        downloadId,
+        record.sourceType,
+        await getDownloadNotificationColor(record),
+      );
+    }
   } catch (error) {
     const cancelled = cancelledDownloads.has(downloadId);
     const pauseFailed = pauseFailedDownloads.has(downloadId);
