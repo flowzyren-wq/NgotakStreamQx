@@ -107,6 +107,8 @@ export type RootStackParamList = {
     linkIndex: number;
     episodeList: EpisodeLink[];
     directUrl?: string;
+    directUrlServer?: string;
+    directUrlHeaders?: Record<string, string>;
     type: string;
     primaryTitle?: string;
     secondaryTitle?: string;

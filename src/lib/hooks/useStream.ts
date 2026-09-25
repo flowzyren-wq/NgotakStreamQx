@@ -51,7 +51,7 @@ export const useStream = ({
     refetch,
   } = useQuery<Stream[], Error>({
     queryKey: ['stream', activeEpisode?.link, routeParams?.type, provider],
-    queryFn: async () => {
+    queryFn: async ({signal}) => {
       if (!activeEpisode?.link) {
         return [];
       }
@@ -60,9 +60,16 @@ export const useStream = ({
 
       // Handle direct URL (downloaded content)
       if (routeParams?.directUrl) {
-        return [
-          {server: 'Downloaded', link: routeParams.directUrl, type: 'mp4'},
-        ];
+        const directUrl: string = routeParams.directUrl;
+        const directStream: Stream = {
+          server: routeParams.directUrlServer || 'Downloaded',
+          link: directUrl,
+          type: directUrl.includes('.m3u8') ? 'm3u8' : 'mp4',
+        };
+        if (routeParams.directUrlHeaders) {
+          directStream.headers = routeParams.directUrlHeaders;
+        }
+        return [directStream];
       }
 
       // Check for local downloaded file
@@ -81,12 +88,26 @@ export const useStream = ({
 
       // Fetch streams from provider
       const controller = new AbortController();
-      const data = await providerManager.getStream({
-        link: activeEpisode.link,
-        type: routeParams?.type,
-        signal: controller.signal,
-        providerValue: routeParams?.providerValue || provider,
-      });
+      const abortFromParent = () => controller.abort();
+      signal?.addEventListener('abort', abortFromParent);
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
+      let data: Stream[];
+      try {
+        data = await providerManager.getStream({
+          link: activeEpisode.link,
+          type: routeParams?.type,
+          signal: controller.signal,
+          providerValue: routeParams?.providerValue || provider,
+        });
+      } catch (fetchError) {
+        if (!signal?.aborted && controller.signal.aborted) {
+          throw new Error('Stream request timed out after 45 seconds');
+        }
+        throw fetchError;
+      } finally {
+        clearTimeout(timeoutId);
+        signal?.removeEventListener('abort', abortFromParent);
+      }
 
       // Filter out excluded qualities
       const excludedQualities = settingsStorage.getExcludedQualities() || [];
