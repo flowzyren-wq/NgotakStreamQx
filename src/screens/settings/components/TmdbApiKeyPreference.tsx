@@ -46,7 +46,7 @@ const TmdbApiKeyPreference = () => {
             marginTop: 4,
           }}>
           A custom TMDB API v3 key takes priority over the key bundled with
-          Airflix. Clear it to return to the default.
+          NgotakStream Qx. Clear it to return to the default.
         </AppText>
 
         <View

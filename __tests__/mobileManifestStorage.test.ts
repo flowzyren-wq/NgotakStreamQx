@@ -1,8 +1,8 @@
 import {beforeEach, describe, expect, it, jest} from '@jest/globals';
 
 const syncDirectoryUri =
-  'content://storage/tree/primary%3Aairflix/document/primary%3Aairflix%2F.airflix-sync';
-const manifestUri = `${syncDirectoryUri}%2Fairflix-mobile.json`;
+  'content://storage/tree/primary%3Angotakstreamqx/document/primary%3Angotakstreamqx%2F.ngotakstreamqx-sync';
+const manifestUri = `${syncDirectoryUri}%2Fngotakstreamqx-mobile.json`;
 
 jest.mock('expo-file-system/legacy', () => ({
   StorageAccessFramework: {
@@ -24,15 +24,15 @@ jest.mock('../src/lib/downloadLocation', () => ({
 
 import * as FileSystem from 'expo-file-system/legacy';
 import {writeMobileSyncManifest} from '../src/lib/sync/mobileManifestStorage';
-import type {AirflixSyncManifest} from '../src/lib/sync/manifest';
+import type {NgotakSyncManifest} from '../src/lib/sync/manifest';
 
 const location = {
   type: 'saf' as const,
-  uri: 'content://storage/tree/primary%3Aairflix',
-  label: 'Internal storage/airflix',
+  uri: 'content://storage/tree/primary%3Angotakstreamqx',
+  label: 'Internal storage/ngotakstreamqx',
 };
 
-const manifest = (revision: number): AirflixSyncManifest => ({
+const manifest = (revision: number): NgotakSyncManifest => ({
   schemaVersion: 1,
   deviceId: 'mobile',
   revision,
@@ -93,7 +93,7 @@ describe('mobile sync manifest storage', () => {
     expect(mockCreateFile).toHaveBeenCalledTimes(1);
     expect(mockCreateFile).toHaveBeenCalledWith(
       syncDirectoryUri,
-      'airflix-mobile.json',
+      'ngotakstreamqx-mobile.json',
       'application/json',
     );
   });

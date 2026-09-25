@@ -1,4 +1,4 @@
-package com.airflix
+package id.qxshaa.ngotakstreamqx
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -51,8 +51,8 @@ class HttpDownloadModule(
     private val reactContext: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(reactContext) {
     companion object {
-        private const val PROGRESS_EVENT = "AirflixHttpDownloadProgress"
-        private const val STATE_EVENT = "AirflixHttpDownloadState"
+        private const val PROGRESS_EVENT = "NgotakHttpDownloadProgress"
+        private const val STATE_EVENT = "NgotakHttpDownloadState"
         private const val PROGRESS_INTERVAL_MS = 500L
         private const val INITIAL_RETRY_DELAY_MS = 1_000L
         private const val MAX_RETRY_DELAY_MS = 30_000L
@@ -63,7 +63,7 @@ class HttpDownloadModule(
     }
 
     private val metadata by lazy {
-        reactContext.getSharedPreferences("airflix_http_downloads", Context.MODE_PRIVATE)
+        reactContext.getSharedPreferences("ngotakstreamqx_http_downloads", Context.MODE_PRIVATE)
     }
 
     private val connectivityManager by lazy {

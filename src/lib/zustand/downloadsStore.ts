@@ -7,7 +7,7 @@ import {
   type DownloadPayload,
 } from '../storage/DownloadsStorage';
 
-export const DOWNLOADS_STORAGE_KEY = 'airflix-downloads-storage';
+export const DOWNLOADS_STORAGE_KEY = 'ngotakstreamqx-downloads-storage';
 export const DOWNLOADS_SCHEMA_VERSION = 1;
 
 export type DownloadStatus =

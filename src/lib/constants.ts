@@ -7,7 +7,7 @@ export const FLAGS = {
 
 export const themes: {name: string; color: string}[] = [
   {
-    name: 'Airflix',
+    name: 'NgotakStream Qx',
     color: '#FF6347',
   },
   {
@@ -45,7 +45,5 @@ export const themes: {name: string; color: string}[] = [
 ];
 
 export const socialLinks = {
-  github: 'https://github.com/d0x-dev/AirFlix',
-  discord: 'https://discord.gg/cr42m6maWy',
-  sponsor: 'https://github.com/sponsors/d0x-dev',
+  github: 'https://github.com/flowzyren-wq/NgotakStreamQx',
 };

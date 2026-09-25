@@ -16,8 +16,8 @@ module.exports = function withAndroidSigning(config) {
       const signingGradle = path.join(appDir, 'with-signing.gradle');
 
       // Auto-copy keystore to android/app if it exists
-      const keystoreSrc = path.join(projectRoot, 'airflix-key.keystore');
-      const keystoreDest = path.join(appDir, 'airflix-key.keystore');
+      const keystoreSrc = path.join(projectRoot, 'ngotakstreamqx-key.keystore');
+      const keystoreDest = path.join(appDir, 'ngotakstreamqx-key.keystore');
       if (fs.existsSync(keystoreSrc)) {
         fs.copyFileSync(keystoreSrc, keystoreDest);
       }

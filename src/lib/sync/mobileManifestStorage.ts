@@ -3,8 +3,8 @@ import type {SafDownloadLocation} from '../downloadLocation';
 import {getSafEntryName} from '../downloadLocation';
 import {
   parseSyncManifest,
-  AIRFLIX_SYNC_DIRECTORY,
-  type AirflixSyncManifest,
+  NGOTAK_SYNC_DIRECTORY,
+  type NgotakSyncManifest,
 } from './manifest';
 
 const MANIFEST_MIME_TYPE = 'application/json';
@@ -21,7 +21,7 @@ const getSyncDirectory = async (
   location: SafDownloadLocation,
   create: boolean,
 ): Promise<string | null> => {
-  const existing = await findChild(location.uri, AIRFLIX_SYNC_DIRECTORY);
+  const existing = await findChild(location.uri, NGOTAK_SYNC_DIRECTORY);
   if (existing) {
     return existing;
   }
@@ -30,13 +30,13 @@ const getSyncDirectory = async (
   }
   return FileSystem.StorageAccessFramework.makeDirectoryAsync(
     location.uri,
-    AIRFLIX_SYNC_DIRECTORY,
+    NGOTAK_SYNC_DIRECTORY,
   );
 };
 
 export const readMobileSyncManifests = async (
   location: SafDownloadLocation,
-): Promise<AirflixSyncManifest[]> => {
+): Promise<NgotakSyncManifest[]> => {
   const directory = await getSyncDirectory(location, false);
   if (!directory) {
     return [];
@@ -53,19 +53,19 @@ export const readMobileSyncManifests = async (
       }),
   );
   return manifests.filter(
-    (manifest): manifest is AirflixSyncManifest => manifest !== null,
+    (manifest): manifest is NgotakSyncManifest => manifest !== null,
   );
 };
 
 const writeMobileSyncManifestNow = async (
   location: SafDownloadLocation,
-  manifest: AirflixSyncManifest,
+  manifest: NgotakSyncManifest,
 ): Promise<void> => {
   const directory = await getSyncDirectory(location, true);
   if (!directory) {
-    throw new Error('Unable to create Airflix sync directory');
+    throw new Error('Unable to create NgotakStream Qx sync directory');
   }
-  const fileName = `airflix-${manifest.deviceId}.json`;
+  const fileName = `ngotakstreamqx-${manifest.deviceId}.json`;
   const existing = await findChild(directory, fileName);
   const fileUri =
     existing ||
@@ -79,13 +79,13 @@ const writeMobileSyncManifestNow = async (
   const written =
     await FileSystem.StorageAccessFramework.readAsStringAsync(fileUri);
   if (!parseSyncManifest(written)) {
-    throw new Error('Airflix sync manifest verification failed');
+    throw new Error('NgotakStream Qx sync manifest verification failed');
   }
 };
 
 export const writeMobileSyncManifest = (
   location: SafDownloadLocation,
-  manifest: AirflixSyncManifest,
+  manifest: NgotakSyncManifest,
 ): Promise<void> => {
   const write = manifestWriteQueue.then(() =>
     writeMobileSyncManifestNow(location, manifest),

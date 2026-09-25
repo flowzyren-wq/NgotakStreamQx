@@ -69,7 +69,7 @@ class NotificationService {
       // The app launcher is an activity alias, so Notifee's `default`
       // resolution is not reliable. Launch the real activity explicitly.
       launchActivity: `${
-        Application.applicationId || 'id.awoshaaqx.ngotakstreamqx'
+        Application.applicationId || 'id.qxshaa.ngotakstreamqx'
       }.MainActivity`,
       launchActivityFlags: [
         AndroidLaunchActivityFlag.NEW_TASK,
@@ -271,7 +271,7 @@ class NotificationService {
       data: {navigationTarget: 'downloads'},
       onlyAlertOnce: true,
       asForegroundService: true,
-      groupId: 'airflix-downloads',
+      groupId: 'ngotakstreamqx-downloads',
       sortKey: '0000-summary',
       groupSummary: true,
       groupAlertBehavior: AndroidGroupAlertBehavior.CHILDREN,
@@ -320,7 +320,7 @@ class NotificationService {
       smallIcon: 'ic_download_notification_system',
       color,
       data: this.getDownloadData(downloadId, sourceType),
-      groupId: 'airflix-downloads',
+      groupId: 'ngotakstreamqx-downloads',
       sortKey: downloadId,
       progress: {
         max: 100,
@@ -342,7 +342,7 @@ class NotificationService {
       body: 'Queued',
       color,
       data: this.getDownloadData(downloadId, sourceType),
-      groupId: 'airflix-downloads',
+      groupId: 'ngotakstreamqx-downloads',
       sortKey: downloadId,
       actions: [
         {
@@ -386,7 +386,7 @@ class NotificationService {
           : 'ic_download_notification',
       color,
       data: this.getDownloadData(downloadId, sourceType),
-      groupId: 'airflix-downloads',
+      groupId: 'ngotakstreamqx-downloads',
       sortKey: downloadId,
       progress: {
         max: 100,

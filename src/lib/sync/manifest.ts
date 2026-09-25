@@ -1,5 +1,5 @@
-export const AIRFLIX_SYNC_SCHEMA_VERSION = 1;
-export const AIRFLIX_SYNC_DIRECTORY = '.airflix-sync';
+export const NGOTAK_SYNC_SCHEMA_VERSION = 1;
+export const NGOTAK_SYNC_DIRECTORY = '.ngotakstreamqx-sync';
 
 export type SyncRecordKind = 'download' | 'history' | 'watchlist';
 
@@ -68,7 +68,7 @@ export interface SyncTombstone {
   deletedAt: number;
 }
 
-export interface AirflixSyncManifest {
+export interface NgotakSyncManifest {
   schemaVersion: number;
   deviceId: string;
   revision: number;
@@ -123,13 +123,13 @@ export const getDownloadMediaKey = (item: SyncedDownload): string => {
   return `${item.type}:${identity}:${getSeasonKey(item)}:${getEpisodeKey(item)}`;
 };
 
-const isManifest = (value: unknown): value is AirflixSyncManifest => {
+const isManifest = (value: unknown): value is NgotakSyncManifest => {
   if (!value || typeof value !== 'object') {
     return false;
   }
-  const manifest = value as Partial<AirflixSyncManifest>;
+  const manifest = value as Partial<NgotakSyncManifest>;
   return (
-    manifest.schemaVersion === AIRFLIX_SYNC_SCHEMA_VERSION &&
+    manifest.schemaVersion === NGOTAK_SYNC_SCHEMA_VERSION &&
     typeof manifest.deviceId === 'string' &&
     typeof manifest.revision === 'number' &&
     Boolean(manifest.downloads) &&
@@ -137,8 +137,8 @@ const isManifest = (value: unknown): value is AirflixSyncManifest => {
   );
 };
 
-export const parseSyncManifest = (content: string): AirflixSyncManifest | null => {
-  const parse = (value: string): AirflixSyncManifest | null => {
+export const parseSyncManifest = (content: string): NgotakSyncManifest | null => {
+  const parse = (value: string): NgotakSyncManifest | null => {
     try {
       const parsed = JSON.parse(value) as unknown;
       return isManifest(parsed) ? parsed : null;
@@ -181,7 +181,7 @@ export const parseSyncManifest = (content: string): AirflixSyncManifest | null =
 };
 
 export const mergeSyncManifests = (
-  manifests: AirflixSyncManifest[],
+  manifests: NgotakSyncManifest[],
 ): MergedSyncState => {
   const downloads: Record<string, SyncedDownload> = {};
   const history: Record<string, SyncedHistory> = {};

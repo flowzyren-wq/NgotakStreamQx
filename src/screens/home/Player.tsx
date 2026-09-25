@@ -241,7 +241,7 @@ const Player = ({route}: Props): React.JSX.Element => {
   useEffect(() => {
     let mounted = true;
     syncFromSharedFolder()
-      .catch(error => console.warn('[AirflixSync] Player sync failed:', error))
+      .catch(error => console.warn('[NgotakSync] Player sync failed:', error))
       .finally(() => {
         if (mounted) {
           setSyncReady(true);

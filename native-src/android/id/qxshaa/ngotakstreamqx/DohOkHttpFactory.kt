@@ -1,4 +1,4 @@
-package com.airflix
+package id.qxshaa.ngotakstreamqx
 
 import android.util.Log
 import com.facebook.react.modules.network.OkHttpClientFactory

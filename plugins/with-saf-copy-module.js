@@ -93,7 +93,7 @@ function withSafCopyModule(config) {
     'android',
     async cfg => {
       const projectRoot = cfg.modRequest.projectRoot;
-      const packageName = cfg.android?.package || 'com.airflix';
+      const packageName = cfg.android?.package || 'id.qxshaa.ngotakstreamqx';
       const packagePath = packageName.replace(/\./g, '/');
       const targetFile = path.join(
         projectRoot,

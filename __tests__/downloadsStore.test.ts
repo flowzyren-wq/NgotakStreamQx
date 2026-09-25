@@ -41,18 +41,18 @@ describe('downloads store', () => {
   });
 
   it('uses the same download IDs as desktop', () => {
-    expect(createSeriesDownloadId('Airflix Show', 'Season 2', 2)).toBe(
-      'Airflix Show_SSeason 2_E3',
+    expect(createSeriesDownloadId('NgotakStream Show', 'Season 2', 2)).toBe(
+      'NgotakStream Show_SSeason 2_E3',
     );
-    expect(createDirectDownloadId('Airflix Movie', 0)).toBe('Airflix Movie_direct_0');
+    expect(createDirectDownloadId('NgotakStream Movie', 0)).toBe('NgotakStream Movie_direct_0');
   });
 
   it('stores downloads by their desktop-compatible ID', () => {
-    const id = createSeriesDownloadId('Airflix Show', 'Season 1', 0);
+    const id = createSeriesDownloadId('NgotakStream Show', 'Season 1', 0);
     useDownloadsStore.getState().enqueueDownload({
       id,
-      title: 'Airflix Show Season 1 Episode 1',
-      showName: 'Airflix Show',
+      title: 'NgotakStream Show Season 1 Episode 1',
+      showName: 'NgotakStream Show',
       seasonTitle: 'Season 1',
       episodeName: 'Episode 1',
       background: 'https://example.com/background.jpg',
@@ -78,18 +78,18 @@ describe('downloads store', () => {
   });
 
   it('updates progress and completion state', () => {
-    const id = createDirectDownloadId('Airflix Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 0);
     const store = useDownloadsStore.getState();
     store.enqueueDownload({
       id,
-      title: 'Airflix Movie',
+      title: 'NgotakStream Movie',
       type: 'movie',
       url: 'https://example.com/video.mp4',
     });
     store.updateProgress(id, 50, 100, 10);
     store.markCompleted(id, {
-      filePath: 'content://downloads/airflix-movie',
-      finalDocumentUri: 'content://downloads/airflix-movie',
+      filePath: 'content://downloads/ngotakstreamqx-movie',
+      finalDocumentUri: 'content://downloads/ngotakstreamqx-movie',
       totalBytes: 100,
     });
 
@@ -104,11 +104,11 @@ describe('downloads store', () => {
   });
 
   it('does not let late progress events overwrite a network pause', () => {
-    const id = createDirectDownloadId('Airflix Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 0);
     const store = useDownloadsStore.getState();
     store.enqueueDownload({
       id,
-      title: 'Airflix Movie',
+      title: 'NgotakStream Movie',
       type: 'movie',
       url: 'https://example.com/video.mp4',
     });
@@ -167,10 +167,10 @@ describe('downloads store', () => {
   });
 
   it('marks active persisted work as interrupted during reconciliation', () => {
-    const id = createDirectDownloadId('Airflix Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 0);
     useDownloadsStore.getState().enqueueDownload({
       id,
-      title: 'Airflix Movie',
+      title: 'NgotakStream Movie',
       type: 'movie',
       url: 'https://example.com/video.mp4',
       status: 'downloading',

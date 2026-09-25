@@ -17,12 +17,12 @@ import {
   getDownloadMediaKey,
   MAX_SYNC_HISTORY_ITEMS,
   mergeSyncManifests,
-  AIRFLIX_SYNC_SCHEMA_VERSION,
+  NGOTAK_SYNC_SCHEMA_VERSION,
   type SyncTombstone,
   type SyncedDownload,
   type SyncedHistory,
   type SyncedWatchListItem,
-  type AirflixSyncManifest,
+  type NgotakSyncManifest,
 } from './manifest';
 import {
   readMobileSyncManifests,
@@ -30,10 +30,10 @@ import {
   writeMobileSyncManifest,
 } from './mobileManifestStorage';
 
-const DEVICE_ID_KEY = 'airflix-sync-device-id';
-const REVISION_KEY = 'airflix-sync-revision';
-const TOMBSTONES_KEY = 'airflix-sync-tombstones';
-const HISTORY_KEY = 'airflix-sync-history';
+const DEVICE_ID_KEY = 'ngotakstreamqx-sync-device-id';
+const REVISION_KEY = 'ngotakstreamqx-sync-revision';
+const TOMBSTONES_KEY = 'ngotakstreamqx-sync-tombstones';
+const HISTORY_KEY = 'ngotakstreamqx-sync-history';
 const PUBLISH_DELAY_MS = 3000;
 
 let initialized = false;
@@ -157,7 +157,7 @@ const mergeContinueWatchingIntoHistory = (items: ContinueWatchingItem[]) => {
   return saveLocalHistory(history);
 };
 
-const buildManifest = (): AirflixSyncManifest => {
+const buildManifest = (): NgotakSyncManifest => {
   const revision = (mainStorage.getNumber(REVISION_KEY) || 0) + 1;
   mainStorage.setNumber(REVISION_KEY, revision);
   const downloads = Object.fromEntries(
@@ -174,7 +174,7 @@ const buildManifest = (): AirflixSyncManifest => {
     useContinueWatchingStore.getState().items,
   );
   return {
-    schemaVersion: AIRFLIX_SYNC_SCHEMA_VERSION,
+    schemaVersion: NGOTAK_SYNC_SCHEMA_VERSION,
     deviceId: getDeviceId(),
     revision,
     generatedAt: Date.now(),
@@ -255,7 +255,7 @@ const schedulePublish = () => {
   publishTimer = setTimeout(() => {
     publishTimer = undefined;
     publishSyncManifest().catch(error =>
-      console.warn('[AirflixSync] Failed to publish manifest:', error),
+      console.warn('[NgotakSync] Failed to publish manifest:', error),
     );
   }, PUBLISH_DELAY_MS);
 };

@@ -16,8 +16,10 @@ module.exports = () => {
   const IS_PLAYSTORE = process.env.APP_VARIANT === 'playstore';
   const HAS_FIREBASE =
     !IS_PLAYSTORE && (hasAndroidGoogleServices || hasIosGooglePlist);
-  const PACKAGE_NAME = IS_PLAYSTORE ? 'airflix.app' : 'com.airflix';
-  const APP_SCHEME = IS_PLAYSTORE ? 'airflixapp' : 'com.airflix';
+  const PACKAGE_NAME = IS_PLAYSTORE
+    ? 'id.qxshaa.ngotakstreamqx.play'
+    : 'id.qxshaa.ngotakstreamqx';
+  const APP_SCHEME = 'ngotakstreamqx';
   const plugins = [
     './plugins/with-custom-native-modules.js',
     './plugins/android-native-config.js',
@@ -111,15 +113,15 @@ module.exports = () => {
   ];
   return {
     expo: {
-      name: 'Airflix',
+      name: 'NgotakStream Qx',
       scheme: APP_SCHEME,
-      displayName: 'Airflix',
+      displayName: 'NgotakStream Qx',
       jsEngine: 'hermes',
       newArchEnabled: true,
       autolinking: {exclude: ['expo-splash-screen']},
       plugins,
-      slug: 'airflix',
-      version: '1.0.0',
+      slug: 'ngotakstream-qx',
+      version: '1.0.3',
       userInterfaceStyle: 'dark',
       experiments: {
         reactCompiler: true,
@@ -128,9 +130,9 @@ module.exports = () => {
         ...(!IS_PLAYSTORE && hasAndroidGoogleServices
           ? {googleServicesFile: androidGoogleServicesFile}
           : {}),
-        minSdkVersion: 28,
+        minSdkVersion: 24,
         package: PACKAGE_NAME,
-        versionCode: 190,
+        versionCode: 193,
         permissions: [
           'FOREGROUND_SERVICE',
           'FOREGROUND_SERVICE_DATA_SYNC',

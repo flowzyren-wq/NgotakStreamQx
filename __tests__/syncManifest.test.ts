@@ -4,13 +4,13 @@ import {
   MAX_SYNC_HISTORY_ITEMS,
   mergeSyncManifests,
   parseSyncManifest,
-  type AirflixSyncManifest,
+  type NgotakSyncManifest,
 } from '../src/lib/sync/manifest';
 
 const manifest = (
   deviceId: string,
-  overrides: Partial<AirflixSyncManifest> = {},
-): AirflixSyncManifest => ({
+  overrides: Partial<NgotakSyncManifest> = {},
+): NgotakSyncManifest => ({
   schemaVersion: 1,
   deviceId,
   revision: 1,
@@ -22,7 +22,7 @@ const manifest = (
   ...overrides,
 });
 
-describe('Airflix sync manifest', () => {
+describe('NgotakStream Qx sync manifest', () => {
   it('merges watchlist items from different devices', () => {
     const merged = mergeSyncManifests([
       manifest('mobile', {

@@ -1,4 +1,4 @@
-package com.airflix
+package id.qxshaa.ngotakstreamqx
 
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
@@ -238,7 +238,7 @@ class VideoThumbnailModule(
      */
     @UnstableApi
     private fun extractRemoteFrame(source: String, timestampMs: Long): Bitmap {
-        val thread = HandlerThread("airflix-thumbnail-frame-extractor").apply { start() }
+        val thread = HandlerThread("ngotakstreamqx-thumbnail-frame-extractor").apply { start() }
         val handler = Handler(thread.looper)
         val result = CompletableFuture<Bitmap>()
 

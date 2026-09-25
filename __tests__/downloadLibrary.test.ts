@@ -58,7 +58,7 @@ describe('downloaded library grouping', () => {
         showName: 'Rick and Morty',
         seasonTitle: 'Season 7',
         imdbId: 'tt2861424',
-        provider: 'airflix',
+        provider: 'ngotakstreamqx',
       }),
       createItem({
         id: 'Show_SSeason 9_E1',

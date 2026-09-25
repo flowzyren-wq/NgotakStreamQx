@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const KEYSTORE_SOURCE = path.join(__dirname, '..', 'airflix-key.keystore');
+const KEYSTORE_SOURCE = path.join(__dirname, '..', 'ngotakstreamqx-key.keystore');
 const KEYSTORE_DEST = path.join(
   __dirname,
   '..',
   'android',
   'app',
-  'airflix-key.keystore',
+  'ngotakstreamqx-key.keystore',
 );
 
 function pasteKeystore() {

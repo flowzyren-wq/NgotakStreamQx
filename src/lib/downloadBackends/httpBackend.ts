@@ -136,7 +136,7 @@ const startNativeDownload = async ({
   const emitter = new NativeEventEmitter(nativeHttpModule);
   subscriptions.push(
     emitter.addListener(
-      'AirflixHttpDownloadProgress',
+      'NgotakHttpDownloadProgress',
       (event: NativeProgressEvent) => {
         if (event.downloadId !== record.id) {
           return;
@@ -151,7 +151,7 @@ const startNativeDownload = async ({
           );
       },
     ),
-    emitter.addListener('AirflixHttpDownloadState', (event: NativeStateEvent) => {
+    emitter.addListener('NgotakHttpDownloadState', (event: NativeStateEvent) => {
       if (event.downloadId !== record.id) {
         return;
       }

@@ -12,7 +12,7 @@ function withCustomNativeModules(config) {
     'android',
     async cfg => {
       const projectRoot = cfg.modRequest.projectRoot;
-      const packageName = cfg.android?.package || 'com.airflix';
+      const packageName = cfg.android?.package || 'id.qxshaa.ngotakstreamqx';
       const packagePath = packageName.replace(/\./g, '/');
       const targetDir = path.join(
         projectRoot,
@@ -26,13 +26,14 @@ function withCustomNativeModules(config) {
 
       fs.mkdirSync(targetDir, {recursive: true});
 
-      // Copy from native-src/android/com/airflix
+      // Copy from native-src/android/id/qxshaa/ngotakstreamqx
       const sourceDir = path.join(
         projectRoot,
         'native-src',
         'android',
-        'com',
-        'airflix',
+        'id',
+        'qxshaa',
+        'ngotakstreamqx',
       );
 
       if (fs.existsSync(sourceDir)) {
@@ -45,7 +46,7 @@ function withCustomNativeModules(config) {
             // Read the file and update the package name
             let content = fs.readFileSync(sourceFile, 'utf8');
             content = content.replace(
-              /^package com\.airflix$/m,
+              /^package id\.qxshaa\.ngotakstreamqx$/m,
               `package ${packageName}`,
             );
 

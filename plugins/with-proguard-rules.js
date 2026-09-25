@@ -10,8 +10,8 @@ const RULES = `
 -keep interface org.libtorrent4j.** { *; }
 -keep enum org.libtorrent4j.** { *; }
 
-# Keep custom native modules (both com.airflix and dynamic package)
--keep class com.airflix.** { *; }
+# Keep custom native modules (both id.qxshaa.ngotakstreamqx and dynamic package)
+-keep class id.qxshaa.ngotakstreamqx.** { *; }
 `;
 
 module.exports = function withProguardRules(config) {
@@ -25,14 +25,14 @@ module.exports = function withProguardRules(config) {
         'proguard-rules.pro'
       );
       
-      const packageName = cfg.android?.package || 'com.airflix';
+      const packageName = cfg.android?.package || 'id.qxshaa.ngotakstreamqx';
 
       if (fs.existsSync(proguardRulesFile)) {
         let content = fs.readFileSync(proguardRulesFile, 'utf8');
         if (!content.includes('org.libtorrent4j')) {
           content += RULES;
           // Add the current package name to proguard rules
-          if (packageName !== 'com.airflix') {
+          if (packageName !== 'id.qxshaa.ngotakstreamqx') {
             content += `-keep class ${packageName}.** { *; }\n`;
           }
           fs.writeFileSync(proguardRulesFile, content, 'utf8');

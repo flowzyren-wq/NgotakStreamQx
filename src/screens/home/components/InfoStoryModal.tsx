@@ -212,7 +212,7 @@ const TrailerPage = ({
   data: TmdbStoryData;
 }) => {
   const colors = useM3Colors();
-  const youtubeOrigin = 'https://airflix.app';
+  const youtubeOrigin = 'https://ngotakstreamqx.app';
   const trailerUrl = `https://www.youtube.com/embed/${encodeURIComponent(
     data.trailerKey || '',
   )}?playsinline=1&rel=0&modestbranding=1&origin=${encodeURIComponent(

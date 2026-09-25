@@ -1,4 +1,4 @@
-package com.airflix
+package id.qxshaa.ngotakstreamqx
 
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.Promise

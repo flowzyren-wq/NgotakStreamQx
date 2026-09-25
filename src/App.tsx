@@ -240,11 +240,11 @@ const App = () => {
           console.warn('Download foreground reconciliation failed:', error),
         );
         syncFromSharedFolder().catch(error =>
-          console.warn('[AirflixSync] Foreground sync failed:', error),
+          console.warn('[NgotakSync] Foreground sync failed:', error),
         );
       } else {
         publishSyncManifest().catch(error =>
-          console.warn('[AirflixSync] Background publish failed:', error),
+          console.warn('[NgotakSync] Background publish failed:', error),
         );
       }
     });
@@ -255,7 +255,7 @@ const App = () => {
     const interval = setInterval(() => {
       if (AppState.currentState === 'active') {
         syncFromSharedFolder().catch(error =>
-          console.warn('[AirflixSync] Periodic sync failed:', error),
+          console.warn('[NgotakSync] Periodic sync failed:', error),
         );
       }
     }, 30000);

@@ -48,28 +48,6 @@ jest.mock('@dr.pogodin/react-native-fs', () => ({
   exists: jest.fn(async () => false),
 }));
 
-jest.mock('@himanshu8443/react-native-apk-installer', () => ({
-  __esModule: true,
-  default: {
-    packageName: 'com.airflix.test',
-    install: jest.fn(async () => undefined),
-    haveUnknownAppSourcesPermission: jest.fn(async () => true),
-  },
-}));
-
-jest.mock('expo-intent-launcher', () => ({
-  ActivityAction: {
-    MANAGE_UNKNOWN_APP_SOURCES: 'android.settings.MANAGE_UNKNOWN_APP_SOURCES',
-  },
-  startActivityAsync: jest.fn(async () => ({resultCode: 0})),
-}));
-
-jest.mock('expo-file-system/legacy', () => ({
-  getContentUriAsync: jest.fn(
-    async () => 'content://com.airflix.test.FileSystemFileProvider/update.apk',
-  ),
-}));
-
 jest.mock('../src/lib/downloadManager', () => ({
   cancelDownload: mockCancelDownload,
   pauseDownload: mockPauseDownload,
@@ -81,9 +59,6 @@ jest.mock('../src/lib/downloadManager', () => ({
 import {EventType} from '@notifee/react-native';
 import notifee from '@notifee/react-native';
 import * as RNFS from '@dr.pogodin/react-native-fs';
-import RNApkInstaller from '@himanshu8443/react-native-apk-installer';
-import * as IntentLauncher from 'expo-intent-launcher';
-import * as FileSystem from 'expo-file-system/legacy';
 import {notificationService} from '../src/lib/services/Notification';
 
 const mockDisplayNotification = notifee.displayNotification as jest.Mock;
@@ -92,10 +67,6 @@ const mockGetNotificationSettings =
   notifee.getNotificationSettings as jest.Mock;
 const mockRequestPermission = notifee.requestPermission as jest.Mock;
 const mockFileExists = RNFS.exists as jest.Mock;
-const mockHaveUnknownAppSourcesPermission =
-  RNApkInstaller.haveUnknownAppSourcesPermission as jest.Mock;
-const mockStartActivityAsync = IntentLauncher.startActivityAsync as jest.Mock;
-const mockGetContentUriAsync = FileSystem.getContentUriAsync as jest.Mock;
 
 const flushAsyncWork = () =>
   new Promise<void>(resolve => setImmediate(resolve));
@@ -104,7 +75,6 @@ describe('notification service download lifecycle', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockFileExists.mockResolvedValue(false);
-    mockHaveUnknownAppSourcesPermission.mockResolvedValue(true);
     await notificationService.resetDownloadForegroundState();
     mockStopForegroundService.mockClear();
   });
@@ -131,10 +101,10 @@ describe('notification service download lifecycle', () => {
           smallIcon: 'ic_download_notification_system',
           pressAction: {
             id: 'default',
-            launchActivity: 'com.airflix.test.MainActivity',
+            launchActivity: 'id.qxshaa.ngotakstreamqx.test.MainActivity',
             launchActivityFlags: [2, 4, 1],
           },
-          groupId: 'airflix-downloads',
+          groupId: 'ngotakstreamqx-downloads',
           sortKey: 'movie_direct_0',
           actions: [
             expect.objectContaining({pressAction: {id: 'pause-download'}}),
@@ -202,13 +172,13 @@ describe('notification service download lifecycle', () => {
           navigationTarget: 'downloads',
         },
         android: expect.objectContaining({
-          groupId: 'airflix-downloads',
+          groupId: 'ngotakstreamqx-downloads',
           sortKey: 'movie_direct_0',
           actions: [
             expect.objectContaining({
               pressAction: {
                 id: 'start-now-download',
-                launchActivity: 'com.airflix.test.MainActivity',
+                launchActivity: 'id.qxshaa.ngotakstreamqx.test.MainActivity',
                 launchActivityFlags: [2, 4, 1],
               },
             }),
@@ -276,7 +246,7 @@ describe('notification service download lifecycle', () => {
 
     const foregroundNotification = mockDisplayNotification.mock.calls[0][0];
     expect(foregroundNotification.android).toMatchObject({
-      groupId: 'airflix-downloads',
+      groupId: 'ngotakstreamqx-downloads',
       sortKey: '0000-summary',
       groupSummary: true,
       groupAlertBehavior: 2,
@@ -329,7 +299,7 @@ describe('notification service download lifecycle', () => {
         id: 'show_s1_e1',
         android: expect.objectContaining({
           asForegroundService: false,
-          groupId: 'airflix-downloads',
+          groupId: 'ngotakstreamqx-downloads',
           sortKey: 'show_s1_e1',
         }),
       }),
@@ -340,7 +310,7 @@ describe('notification service download lifecycle', () => {
         id: 'show_s1_e2',
         android: expect.objectContaining({
           asForegroundService: false,
-          groupId: 'airflix-downloads',
+          groupId: 'ngotakstreamqx-downloads',
           sortKey: 'show_s1_e2',
         }),
       }),
@@ -373,66 +343,6 @@ describe('notification service download lifecycle', () => {
     });
 
     expect(mockOpenDownloadsScreen).toHaveBeenCalledTimes(1);
-  });
-
-  it('requests unknown-app permission before installing an update', async () => {
-    mockFileExists.mockResolvedValueOnce(true);
-    mockHaveUnknownAppSourcesPermission
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce(true);
-
-    await notificationService.actionHandler({
-      type: EventType.PRESS,
-      detail: {
-        pressAction: {id: 'default'},
-        notification: {
-          data: {action: 'install', filePath: '/cache/airflix-update.apk'},
-        },
-      } as never,
-    });
-
-    expect(mockStartActivityAsync).toHaveBeenCalledWith(
-      'android.settings.MANAGE_UNKNOWN_APP_SOURCES',
-      {data: 'package:com.airflix.test'},
-    );
-    expect(mockGetContentUriAsync).toHaveBeenCalledWith(
-      'file:///cache/airflix-update.apk',
-    );
-    expect(mockStartActivityAsync).toHaveBeenCalledWith(
-      'android.intent.action.VIEW',
-      {
-        data: 'content://com.airflix.test.FileSystemFileProvider/update.apk',
-        flags: 1,
-        type: 'application/vnd.android.package-archive',
-      },
-    );
-  });
-
-  it('does not install when unknown-app permission remains denied', async () => {
-    mockFileExists.mockResolvedValueOnce(true);
-    mockHaveUnknownAppSourcesPermission.mockResolvedValue(false);
-
-    await notificationService.actionHandler({
-      type: EventType.PRESS,
-      detail: {
-        pressAction: {id: 'default'},
-        notification: {
-          data: {action: 'install', filePath: '/cache/airflix-update.apk'},
-        },
-      } as never,
-    });
-
-    expect(mockGetContentUriAsync).not.toHaveBeenCalled();
-    expect(mockDisplayNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'downloadComplete',
-        title: 'Install permission required',
-        data: {
-          action: 'install',
-          filePath: '/cache/airflix-update.apk',
-        },
-      }),
-    );
   });
 
   it('routes pause and resume actions through the global manager', async () => {

@@ -180,7 +180,7 @@ const DownloadedDetails = ({navigation, route}: DownloadedDetailsProps) => {
         poster: metadata.poster,
         background: metadata.background,
       },
-      providerValue: item.provider || metadata.provider || 'airflix',
+      providerValue: item.provider || metadata.provider || 'ngotakstreamqx',
       infoUrl: item.infoUrl || metadata.infoUrl,
     });
   };
