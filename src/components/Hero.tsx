@@ -9,7 +9,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {Image, Keyboard, Pressable, View} from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  Keyboard,
+  Pressable,
+  View,
+} from 'react-native';
 import {getColors} from 'react-native-image-colors';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {FadeIn, FadeInDown} from 'react-native-reanimated';
@@ -27,6 +33,7 @@ import AppText from './ui/Text';
 interface HeroProps {
   isDrawerOpen: boolean;
   onOpenDrawer: () => void;
+  showMenuButton?: boolean;
 }
 
 const IMAGE_COLOR_FALLBACK = '#FFFFFF';
@@ -48,12 +55,14 @@ const HeroTopButton = ({
   disabled = false,
   icon,
   iconColor,
+  iconImage,
   label,
   onPress,
 }: {
   disabled?: boolean;
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   iconColor: string;
+  iconImage?: ImageSourcePropType;
   label: string;
   onPress: () => void;
 }) => (
@@ -69,11 +78,20 @@ const HeroTopButton = ({
       opacity: disabled ? 0 : pressed ? 0.62 : 1,
       width: 48,
     })}>
-    <MaterialCommunityIcons name={icon} size={30} color={iconColor} />
+    {iconImage ? (
+      <Image
+        source={iconImage}
+        resizeMode="contain"
+        style={{height: 30, width: 30}}
+      />
+    ) : (
+      <MaterialCommunityIcons name={icon} size={30} color={iconColor} />
+    )}
   </Pressable>
 );
 
-const Hero = memo(({isDrawerOpen, onOpenDrawer}: HeroProps) => {
+const Hero = memo(
+  ({isDrawerOpen, onOpenDrawer, showMenuButton = true}: HeroProps) => {
   const colors = useM3Colors();
   const insets = useSafeAreaInsets();
   const [logoFailed, setLogoFailed] = useState(false);
@@ -95,6 +113,7 @@ const Hero = memo(({isDrawerOpen, onOpenDrawer}: HeroProps) => {
         heroData?.poster ||
         hero?.image ||
         '',
+      cache: 'force-cache' as const,
     }),
     [hero?.image, heroData],
   );
@@ -200,19 +219,32 @@ const Hero = memo(({isDrawerOpen, onOpenDrawer}: HeroProps) => {
           right: 16,
           top: insets.top + 6,
         }}>
-<HeroTopButton
-          icon="menu"
-          iconColor={searchButtonColor}
-          label="Open provider drawer"
-          disabled={isDrawerOpen}
-          onPress={onOpenDrawer}
-        />
-        <HeroTopButton
-          icon="cog"
-          iconColor={searchButtonColor}
-          label="Settings"
-          onPress={() => navigation.navigate('SettingsStack' as any)}
-        />
+        {showMenuButton ? (
+          <HeroTopButton
+            icon="menu"
+            iconColor={searchButtonColor}
+            label="Open provider drawer"
+            disabled={isDrawerOpen}
+            onPress={onOpenDrawer}
+          />
+        ) : (
+          <View style={{height: 48, width: 48}} />
+        )}
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          <HeroTopButton
+            icon="rabbit-variant"
+            iconImage={require('../../assets/hentai_icon.png')}
+            iconColor={searchButtonColor}
+            label="Hentai section"
+            onPress={() => navigation.navigate('AdultSection' as any)}
+          />
+          <HeroTopButton
+            icon="cog"
+            iconColor={searchButtonColor}
+            label="Settings"
+            onPress={() => navigation.navigate('SettingsStack' as any)}
+          />
+        </View>
       </View>
 
       <Animated.View

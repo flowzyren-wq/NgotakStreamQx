@@ -3,7 +3,7 @@ import AmbientBackground from '../../components/ui/AmbientBackground';
 import Slider from '../../components/Slider';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import HeroOptimized from '../../components/Hero';
-import {mainStorage} from '../../lib/storage';
+import {mainStorage, settingsStorage} from '../../lib/storage';
 import useContentStore from '../../lib/zustand/contentStore';
 import useHeroStore from '../../lib/zustand/herostore';
 import {
@@ -39,6 +39,7 @@ const Home = ({}: Props) => {
     () => mainStorage.getBool('disableDrawer') || false,
     [],
   );
+  const showMenuButton = !disableDrawer && settingsStorage.showHamburgerMenu();
 
   const provider = useContentStore(state => state.provider);
   const installedProviders = useContentStore(state => state.installedProviders);
@@ -191,11 +192,9 @@ const Home = ({}: Props) => {
             drawerStyle={{width: 200, backgroundColor: 'transparent'}}
             swipeEdgeWidth={disableDrawer ? 0 : 70}
             swipeEnabled={!disableDrawer}
-            renderDrawerContent={() =>
-              !disableDrawer ? (
-                <ProviderDrawer onClose={() => setIsDrawerOpen(false)} />
-              ) : null
-            }>
+            renderDrawerContent={() => (
+              <ProviderDrawer onClose={() => setIsDrawerOpen(false)} />
+            )}>
             <StatusBar style="light" />
 
             <ScrollView
@@ -215,6 +214,7 @@ const Home = ({}: Props) => {
               <HeroOptimized
                 isDrawerOpen={isDrawerOpen}
                 onOpenDrawer={() => setIsDrawerOpen(true)}
+                showMenuButton={showMenuButton}
               />
 
               <ContinueWatching />
