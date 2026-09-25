@@ -1,4 +1,5 @@
 import AppText from '../components/ui/Text';
+import {settingsStorage} from '../lib/storage';
 import React, {useCallback, useMemo, useState} from 'react';
 import {
   ImageBackground,
@@ -160,7 +161,7 @@ const CastRemotePlayer = ({
           </TouchableOpacity>
           <View className="flex-1">
             <AppText className="text-white text-lg font-semibold" numberOfLines={1}>
-              {title || 'Airflix'}
+              {title || 'NgotakStream Qx'}
             </AppText>
             {!!subtitle && (
               <AppText className="text-white/65 text-xs mt-0.5" numberOfLines={1}>
@@ -223,7 +224,7 @@ const CastRemotePlayer = ({
           <TouchableOpacity
             accessibilityLabel="Seek backward 10 seconds"
             disabled={pendingAction}
-            onPress={() => seekBy(-10)}
+            onPress={() => seekBy(-settingsStorage.getSeekSkipSeconds())}
             className="w-11 h-11 rounded-full bg-white/10 items-center justify-center">
             <MaterialIcons name="replay-10" size={26} color="white" />
           </TouchableOpacity>
@@ -244,7 +245,7 @@ const CastRemotePlayer = ({
           <TouchableOpacity
             accessibilityLabel="Seek forward 10 seconds"
             disabled={pendingAction}
-            onPress={() => seekBy(10)}
+            onPress={() => seekBy(settingsStorage.getSeekSkipSeconds())}
             className="w-11 h-11 rounded-full bg-white/10 items-center justify-center">
             <MaterialIcons name="forward-10" size={26} color="white" />
           </TouchableOpacity>

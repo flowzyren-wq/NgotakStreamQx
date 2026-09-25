@@ -9,7 +9,7 @@ import {
   useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
-import {MaterialCommunityIcons} from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {settingsStorage} from '../lib/storage';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {RootStackParamList} from '../App';

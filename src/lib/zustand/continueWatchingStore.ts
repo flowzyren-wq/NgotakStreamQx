@@ -23,6 +23,7 @@ interface ContinueWatchingState {
   upsertItem: (item: ContinueWatchingItem) => void;
   updateProgress: (id: string, position: number, duration: number) => void;
   removeItem: (id: string) => void;
+  clearAllItems: () => void;
 }
 
 const useContinueWatchingStore = create<ContinueWatchingState>()(
@@ -50,6 +51,7 @@ const useContinueWatchingStore = create<ContinueWatchingState>()(
         })),
       removeItem: id =>
         set(state => ({items: state.items.filter(item => item.id !== id)})),
+      clearAllItems: () => set({items: []}),
     }),
     {
       name: 'continue-watching-storage',

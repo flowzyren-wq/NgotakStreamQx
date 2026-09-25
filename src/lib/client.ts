@@ -1,4 +1,5 @@
 import {QueryClient} from '@tanstack/react-query';
+import {settingsStorage} from './storage';
 
 // Enhanced query client with optimal configurations
 export const queryClient = new QueryClient({
@@ -19,8 +20,8 @@ export const queryClient = new QueryClient({
           return false; // Don't retry if user cancelled or failed captcha
         }
 
-        // Retry up to 3 times for other errors with exponential backoff
-        return failureCount < 3;
+        // Retry up to the user-configured count for other errors with exponential backoff
+        return failureCount < settingsStorage.getNetworkRetryCount();
       },
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
 
@@ -31,7 +32,7 @@ export const queryClient = new QueryClient({
       // Network configuration
       refetchOnWindowFocus: false, // Don't refetch when app regains focus
       refetchOnReconnect: 'always', // Always refetch when reconnected
-      refetchOnMount: true, // Refetch when component mounts
+      refetchOnMount: false, // Don't refetch when component mounts
 
       // Performance optimizations
       refetchInterval: false, // Disable automatic polling by default

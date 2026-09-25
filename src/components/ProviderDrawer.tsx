@@ -2,7 +2,7 @@ import AppText from '../components/ui/Text';
 import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import React from 'react';
 import useContentStore from '../lib/zustand/contentStore';
-import {MaterialIcons} from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {useM3Colors} from '../theme/M3PaletteContext';
 
 const ProviderDrawer = ({onClose}: {onClose: () => void}) => {

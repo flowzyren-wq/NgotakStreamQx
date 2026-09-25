@@ -1,5 +1,5 @@
 import AppText from '../../../components/ui/Text';
-import {MaterialCommunityIcons} from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React from 'react';
 import {ActivityIndicator, Image, Pressable, Text, View} from 'react-native';
 import type {ProviderExtension} from '../../../lib/storage/extensionStorage';

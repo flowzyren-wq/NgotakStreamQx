@@ -109,6 +109,3 @@ export const M3_SEEDS: SeedOption[] = [
   {name: 'Blue', color: '#2196F3'},
   {name: 'Lavender', color: '#B2A4D4'},
 ];
-
-export const isCuratedSeed = (color: string): boolean =>
-  M3_SEEDS.some(seed => seed.color.toLowerCase() === color.toLowerCase());

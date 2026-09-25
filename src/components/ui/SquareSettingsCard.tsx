@@ -1,7 +1,8 @@
 import {View, Pressable, StyleProp, ViewStyle} from 'react-native';
+import {useM3Colors} from '../../theme/M3PaletteContext';
 import React from 'react';
 import AppText from './Text';
-import {MaterialCommunityIcons} from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -23,6 +24,7 @@ const SquareSettingsCard = ({
   onPress,
   style,
 }: SquareSettingsCardProps) => {
+  const colors = useM3Colors();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -48,7 +50,7 @@ const SquareSettingsCard = ({
       onPress={onPress}
       style={[
         {
-          backgroundColor: '#232427', // The "Silver cards" effect (dark grey)
+          backgroundColor: colors.surfaceContainer,
           borderRadius: 24,
           flex: 1, // Let it expand in the grid
           height: 120, // Fixed height instead of square
@@ -64,7 +66,7 @@ const SquareSettingsCard = ({
           width: 44,
           height: 44,
           borderRadius: 16,
-          backgroundColor: '#383a40', // Slightly lighter inner box
+          backgroundColor: colors.surfaceContainerHigh,
           alignItems: 'center',
           justifyContent: 'center',
         }}>

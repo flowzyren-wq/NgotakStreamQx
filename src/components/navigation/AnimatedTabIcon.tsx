@@ -16,7 +16,8 @@ export type AnimatedTabIconName =
   | 'search'
   | 'watchlist'
   | 'download'
-  | 'settings';
+  | 'settings'
+  | 'stats';
 
 type AnimatedTabIconProps = {
   name: AnimatedTabIconName;

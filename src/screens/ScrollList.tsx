@@ -245,7 +245,7 @@ const ScrollList = ({route}: Props): React.ReactElement => {
                   source={{
                     uri:
                       item.image ||
-                      'https://placehold.jp/24/363636/ffffff/100x150.png?text=Airflix',
+                      'https://placehold.jp/24/363636/ffffff/100x150.png?text=NgotakStream+Qx',
                   }}
                   style={
                     viewType === 1

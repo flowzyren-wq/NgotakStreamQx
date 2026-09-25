@@ -22,6 +22,7 @@ const TAB_ICONS: Record<string, AnimatedTabIconName> = {
   WatchListStack: 'watchlist',
   DownloadsStack: 'download',
   SettingsStack: 'settings',
+  StatsStack: 'stats',
 };
 
 const StreamingTabBar = ({

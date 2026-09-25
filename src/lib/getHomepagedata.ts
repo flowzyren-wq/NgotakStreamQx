@@ -34,7 +34,7 @@ export const getHomePageDataOptimized = async (
         throw new Error('Request aborted');
       }
 
-      console.log(`✅ Fetched ${data?.length || 0} posts for: ${item.title}`);
+      console.log(`Fetched ${data?.length || 0} posts for: ${item.title}`);
 
       return {
         title: item.title,
@@ -42,7 +42,7 @@ export const getHomePageDataOptimized = async (
         filter: item.filter,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch ${item.title}:`, error);
+      console.error(`Failed to fetch ${item.title}:`, error);
 
       // Return partial data with error info instead of failing completely
       return {
@@ -85,7 +85,7 @@ export const getHomePageDataOptimized = async (
   });
 
   console.log(
-    `📊 Results: ${successCount} successful, ${failureCount} failed categories`,
+    `Results: ${successCount} successful, ${failureCount} failed categories`,
   );
 
   // Ensure we have at least some data

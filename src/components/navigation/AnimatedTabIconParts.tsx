@@ -161,6 +161,13 @@ export const FilledTabIcon = ({
           d="M9.393 2.75A1.25 1.25 0 0 1 10.57 1.9h2.86a1.25 1.25 0 0 1 1.177.83l.474 1.329a1 1 0 0 0 1.31.59l1.277-.554a1.25 1.25 0 0 1 1.58.52l1.43 2.477a1.25 1.25 0 0 1-.4 1.615l-1.104.857a1 1 0 0 0 0 1.578l1.103.856a1.25 1.25 0 0 1 .4 1.616l-1.429 2.476a1.25 1.25 0 0 1-1.58.52l-1.276-.553a1 1 0 0 0-1.311.59l-.474 1.328a1.25 1.25 0 0 1-1.177.83h-2.86a1.25 1.25 0 0 1-1.177-.83l-.474-1.329a1 1 0 0 0-1.31-.59l-1.277.554a1.25 1.25 0 0 1-1.58-.52l-1.43-2.477a1.25 1.25 0 0 1 .4-1.615l1.104-.857a1 1 0 0 0 0-1.578l-1.103-.856a1.25 1.25 0 0 1-.4-1.616l1.429-2.476a1.25 1.25 0 0 1 1.58-.52l1.276.553a1 1 0 0 0 1.311-.59l.474-1.328ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
         />
       );
+    case 'stats':
+      return (
+        <Path
+          fill={color}
+          d="M4.25 13.25h3.5v6.25h-3.5v-6.25ZM10 8.75h3.5v10.75H10V8.75ZM15.75 4.75h3.5v14.75h-3.5V4.75Z"
+        />
+      );
   }
 };
 
@@ -339,6 +346,15 @@ export const OutlineTabIcon = ({
             start={0.48}
             strokeWidth={1.8}
           />
+        </>
+      );
+    case 'stats':
+      return (
+        <>
+          <AnimatedStrokePath progress={progress} color={color} d="M5 19.75V13.5" />
+          <AnimatedStrokePath progress={progress} color={color} d="M11 19.75V8.5" />
+          <AnimatedStrokePath progress={progress} color={color} d="M17 19.75V4.5" />
+          <AnimatedStrokePath progress={progress} color={color} d="M3.75 20.75h16.5" />
         </>
       );
   }

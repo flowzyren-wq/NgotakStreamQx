@@ -211,7 +211,7 @@ const DownloadedDetails = ({navigation, route}: DownloadedDetailsProps) => {
   const backgroundImage =
     metadata.background ||
     metadata.poster ||
-    'https://placehold.jp/24/171717/ffffff/800x450.png?text=Airflix';
+    'https://placehold.jp/24/171717/ffffff/800x450.png?text=NgotakStream+Qx';
 
   return (
     <View className="h-full w-full bg-black">

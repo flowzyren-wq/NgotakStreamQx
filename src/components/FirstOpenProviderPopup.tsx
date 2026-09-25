@@ -29,7 +29,7 @@ const FirstOpenProviderPopup = () => {
       <View style={styles.overlay}>
         <View style={[styles.dialog, { backgroundColor: colors.surfaceContainerHigh }]}>
           <AppText role="titleLarge" style={{ color: colors.onSurface, marginBottom: 12, fontWeight: 'bold' }}>
-            Welcome to AirFlix!
+            Welcome to NgotakStream Qx!
           </AppText>
           <AppText role="bodyLarge" style={{ color: colors.onSurfaceVariant, marginBottom: 24, lineHeight: 22 }}>
             For better results, install more providers! If you face any issues finding streams, try changing your active provider.
