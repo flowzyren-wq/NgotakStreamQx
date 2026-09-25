@@ -53,7 +53,14 @@
 - **Ditambah:** `tweetnacl` (dipakai bagian Adult). `package-lock.json` sudah diperbarui.
 - **`android/`:** hasil `expo prebuild` sekarang di-commit, jadi bisa langsung dibuka di Android Studio. Namespace dan applicationId adalah `id.qxshaa.ngotakstreamqx`.
 - **TypeScript:** `tsc --noEmit` lolos dengan **0 error**.
-- **Jest:** 148/152 test lolos. Test yang mengacu ke API lama AirFlix sudah disesuaikan dengan APK. Sisa 4 test yang gagal, dan 5 suite yang tidak bisa jalan karena ESM `expo-modules-core`, juga sudah gagal di source AirFlix asli; penyebabnya lingkungan test atau ekspektasi upstream, bukan perubahan di sini.
+- **Jest:** **31/31 suite, 179/179 test lolos** (`npx jest`).
+  - `jest.config.js` + `jest.setup.js` baru: paket Expo/ESM ikut ditransform, global `expo` dipasang (seperti jest-expo), MMKV in-memory, mock resmi Reanimated/Worklets/Gesture Handler/Notifee, serta mock generik untuk modul native (TurboModule, `react-native-fs`, orientation-locker, media-console).
+  - Test lama dari AirFlix yang masih memakai API lama disesuaikan ke API source/APK saat ini: `createDirectDownloadId(title, group, index)`, media key sync `i0`, `hitSlop` 8 di IconButton, bottom sheet `@expo/ui` (snap point 55%/82%), dan dialog Compose di Extensions (dicari lewat teks, bukan `testID`).
+
+### Perbaikan bug
+
+- **Import tema di ThemeStudio** sekarang jalan. Sebelumnya `readAsStringAsync` diambil dari API baru `expo-file-system` (di sana cuma stub legacy yang melempar error), jadi import selalu gagal. Sekarang import dari `expo-file-system/legacy`.
+- **Clear cache tidak lagi merusak download yang sedang jalan.** Sebelumnya semua isi folder cache dihapus, termasuk staging download (`cache/downloads`) dan segmen HLS (`cache/hls_segments`). Sekarang dua folder itu dikecualikan.
 - **Dokumen:** `README.md`, `NOTICE` (atribusi AirFlix dan Vega, Apache-2.0) dan `THIRD_PARTY_NOTICES.md`. `LICENSE` Apache-2.0 tetap dipertahankan.
 - **Dibersihkan:** folder kerja decompile `_work/` dan workflow fetch APK.
 
@@ -81,6 +88,4 @@
     - pengecekan URL `airflix-providers` (migrasi sumber lama);
     - URL provider `B7ByteMe/valorafilm-providers`;
     - komentar asal port di `urlGuard.ts`.
-11. **Bug bawaan APK yang dipertahankan:**
-    - Import tema di ThemeStudio memakai `readAsStringAsync` dari API baru `expo-file-system`, yang di sana hanya stub legacy, sehingga import selalu gagal. Perbaikannya: import dari `expo-file-system/legacy`.
-    - Tipe `fullscreenOrientation: 'default'` di Player diberi cast.
+11. **Catatan tipe:** `fullscreenOrientation: 'default'` di Player dipertahankan sesuai APK dan diberi cast karena tipe library tidak mengenalnya. Dua bug APK (import tema dan Clear cache) sudah diperbaiki, lihat "Perbaikan bug".
