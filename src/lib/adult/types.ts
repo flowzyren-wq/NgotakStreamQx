@@ -16,6 +16,7 @@ export interface AdultSite {
 }
 
 export interface AdultRegistry {
+  version?: number | string;
   sites: AdultSite[];
 }
 
