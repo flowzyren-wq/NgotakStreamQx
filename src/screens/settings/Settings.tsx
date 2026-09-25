@@ -4,30 +4,22 @@ import {
   ToastAndroid,
   View,
   Pressable,
-  ScrollView,
   StatusBar,
   Platform,
   Image,
-  Linking,
 } from 'react-native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   settingsStorage,
   clearAllMMKVStorage,
 } from '../../lib/storage';
-import * as Updates from 'expo-updates';
 import Constants from 'expo-constants';
-import * as RNFS from '@dr.pogodin/react-native-fs';
-import * as Application from 'expo-application';
-import {notificationService} from '../../lib/services/Notification';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { BlurView } from 'expo-blur';
-import {
-  NativeStackScreenProps,
-  NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
-import {SettingsStackParamList, TabStackParamList} from '../../App';
-import {MaterialIcons, Ionicons} from '@expo/vector-icons';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {SettingsStackParamList} from '../../App';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -39,163 +31,21 @@ import Animated, {
   Extrapolation,
   interpolateColor,
 } from 'react-native-reanimated';
-import {useNavigation} from '@react-navigation/native';
 import useNavigationPreferencesStore from '../../lib/zustand/navigationPreferencesStore';
-import GitHubStarButton from './components/GitHubStarButton';
+import useContentStore from '../../lib/zustand/contentStore';
 import DnsPreference from './components/DnsPreference';
 import IconButton from '../../components/ui/IconButton';
 import SettingsRow from '../../components/ui/SettingsRow';
 import SettingsSection from '../../components/ui/SettingsSection';
 import AppText from '../../components/ui/Text';
-import SettingsSwitchRow from '../../components/ui/SettingsSwitchRow';
-import LoadingIndicator from '../../components/ui/LoadingIndicator';
 import {useM3Colors} from '../../theme/M3PaletteContext';
 import {showAppDialog} from '../../lib/zustand/appDialogStore';
+import {MMKV} from '../../lib/Mmkv';
 import {clearAppCache} from '../../lib/clearAppCache';
+import * as RNFS from '@dr.pogodin/react-native-fs';
+import useContinueWatchingStore from '../../lib/zustand/continueWatchingStore';
 import SquareSettingsCard from '../../components/ui/SquareSettingsCard';
 import AmbientBackground from '../../components/ui/AmbientBackground';
-
-const deletePartialFile = async (filePath: string) => {
-  try {
-    if (await RNFS.exists(filePath)) {
-      await RNFS.unlink(filePath);
-    }
-  } catch {}
-};
-
-const downloadUpdate = async (url: string, name: string) => {
-  console.log('downloading', url, name);
-  await notificationService.requestPermission();
-
-  const filePath = `${RNFS.CachesDirectoryPath}/${name}`;
-  let expectedSize = 0;
-
-  const {promise} = RNFS.downloadFile({
-    fromUrl: url,
-    background: true,
-    progressInterval: 1000,
-    progressDivider: 1,
-    toFile: filePath,
-    begin: res => {
-      expectedSize = res.contentLength;
-      console.log('begin', res.jobId, res.statusCode, res.contentLength);
-    },
-    progress: res => {
-      notificationService.showUpdateProgress(
-        'Downloading Update',
-        `Version ${Application.nativeApplicationVersion} -> ${name}`,
-        {
-          current: res.bytesWritten,
-          max: res.contentLength,
-          indeterminate: false,
-        },
-      );
-    },
-  });
-
-  try {
-    const res = await promise;
-    await notificationService.cancelNotification('updateProgress');
-
-    if (res.statusCode !== 200 || res.bytesWritten < expectedSize) {
-      console.log(
-        `[update] Download failed: status=${res.statusCode}, bytes=${res.bytesWritten}/${expectedSize}`,
-      );
-      await deletePartialFile(filePath);
-      ToastAndroid.show(
-        'Download failed, please try again',
-        ToastAndroid.SHORT,
-      );
-      return;
-    }
-
-    await notificationService.displayUpdateNotification({
-      id: 'downloadComplete',
-      title: 'Download Complete',
-      body: 'Tap to install',
-      data: {filePath, action: 'install'},
-    });
-  } catch (error) {
-    console.log('[update] Download error:', error);
-    await notificationService.cancelNotification('updateProgress');
-    await deletePartialFile(filePath);
-    ToastAndroid.show('Download failed, please try again', ToastAndroid.SHORT);
-  }
-};
-
-function compareVersions(localVersion: string, remoteVersion: string): boolean {
-  try {
-    const local = localVersion.split('.').map(Number);
-    const remote = remoteVersion.split('.').map(Number);
-
-    if (remote[0] > local[0]) return true;
-    if (remote[0] < local[0]) return false;
-    if (remote[1] > local[1]) return true;
-    if (remote[1] < local[1]) return false;
-    if (remote[2] > local[2]) return true;
-
-    return false;
-  } catch (error) {
-    console.error('Invalid version format');
-    return false;
-  }
-}
-
-export const checkForUpdate = async (
-  setUpdateLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  autoDownload: boolean,
-  showToast: boolean = true,
-) => {
-  setUpdateLoading(true);
-  try {
-    const res = await fetch(
-      'https://api.github.com/repos/d0x-dev/AirFlix/releases/latest',
-    );
-    const data = await res.json();
-    const localVersion = Application.nativeApplicationVersion;
-    if (!data.tag_name) {
-      throw new Error(data.message || 'No release found');
-    }
-    const remoteVersion = Number(
-      data.tag_name.replace('v', '')?.split('.').join(''),
-    );
-    if (compareVersions(localVersion || '', data.tag_name.replace('v', ''))) {
-      ToastAndroid.show('New update available', ToastAndroid.SHORT);
-      showAppDialog({
-        title: `Update v${localVersion} -> ${data.tag_name}`,
-        message: data.body,
-        messageFormat: 'markdown',
-        actions: [
-          {label: 'Cancel'},
-          {
-            label: 'Update',
-            variant: 'primary',
-            onPress: () => {
-              const apkAsset =
-                data?.assets?.find(
-                  (asset: any) =>
-                    asset.name?.endsWith('.apk') &&
-                    asset.name?.toLowerCase().includes('universal'),
-                ) ||
-                data?.assets?.find((asset: any) =>
-                  asset.name?.endsWith('.apk'),
-                );
-              return autoDownload && apkAsset
-                ? downloadUpdate(apkAsset.browser_download_url, apkAsset.name)
-                : Linking.openURL(data.html_url);
-            },
-          },
-        ],
-      });
-    } else {
-      showToast && ToastAndroid.show('App is up to date', ToastAndroid.SHORT);
-    }
-  } catch (error) {
-    ToastAndroid.show('Failed to check for update', ToastAndroid.SHORT);
-    console.log('Update error', error);
-  }
-  setUpdateLoading(false);
-};
 
 type Props = NativeStackScreenProps<SettingsStackParamList, 'Settings'>;
 
@@ -204,18 +54,14 @@ const Settings = ({navigation}: Props) => {
   const hideDownloadsTab = useNavigationPreferencesStore(
     state => state.hideDownloadsTab,
   );
+  const provider = useContentStore(state => state.provider);
+  const providerName =
+    provider?.display_name || provider?.value || 'NgotakStream Qx';
 
   const scrollY = useSharedValue(0);
-  const [updateLoading, setUpdateLoading] = React.useState(false);
-  const [autoDownload, setAutoDownload] = React.useState(
-    settingsStorage.isAutoDownloadEnabled(),
-  );
-  const [autoCheckUpdate, setAutoCheckUpdate] = React.useState<boolean>(
-    settingsStorage.isAutoCheckUpdateEnabled(),
-  );
 
   const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
+    onScroll: event => {
       scrollY.value = event.contentOffset.y;
     },
   });
@@ -236,10 +82,38 @@ const Settings = ({navigation}: Props) => {
       backgroundColor: interpolateColor(
         scrollY.value,
         [30, 60],
-        ['transparent', '#000000']
+        ['transparent', '#000000'],
       ),
     };
   });
+
+  const [cacheSize, setCacheSize] = useState<string | null>(null);
+  const [networkRetries, setNetworkRetries] = useState(
+    settingsStorage.getNetworkRetryCount(),
+  );
+
+  const refreshCacheSize = useCallback(async () => {
+    try {
+      const files = await RNFS.readDir(RNFS.CachesDirectoryPath);
+      const bytes = files.reduce(
+        (total, file) => total + (file.isFile() ? file.size : 0),
+        0,
+      );
+      if (bytes >= 1024 * 1024 * 1024) {
+        setCacheSize(`${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`);
+      } else if (bytes >= 1024 * 1024) {
+        setCacheSize(`${(bytes / (1024 * 1024)).toFixed(1)} MB`);
+      } else {
+        setCacheSize(`${Math.max(0, Math.round(bytes / 1024))} KB`);
+      }
+    } catch {
+      setCacheSize(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshCacheSize();
+  }, [refreshCacheSize]);
 
   const clearCacheHandler = useCallback(async () => {
     if (settingsStorage.isHapticFeedbackEnabled()) {
@@ -249,15 +123,50 @@ const Settings = ({navigation}: Props) => {
       });
     }
     await clearAppCache();
+    refreshCacheSize();
     ToastAndroid.show('App cache cleared', ToastAndroid.SHORT);
+  }, [refreshCacheSize]);
+
+  const confirmClearWatchHistory = useCallback(() => {
+    showAppDialog({
+      title: 'Clear watch history?',
+      message:
+        'Removes every Continue watching entry. Watchlist items and downloaded files are not affected.',
+      actions: [
+        {label: 'Cancel'},
+        {
+          label: 'Clear history',
+          variant: 'destructive',
+          onPress: () => {
+            useContinueWatchingStore.getState().clearAllItems();
+            ToastAndroid.show('Watch history cleared', ToastAndroid.SHORT);
+          },
+        },
+      ],
+    });
+  }, []);
+
+  const confirmClearSearchHistory = useCallback(() => {
+    showAppDialog({
+      title: 'Clear search history?',
+      message:
+        'Removes recent searches shown on the Search screen. This cannot be undone.',
+      actions: [
+        {label: 'Cancel'},
+        {
+          label: 'Clear history',
+          variant: 'destructive',
+          onPress: () => {
+            MMKV.setArray('searchHistory', []);
+            ToastAndroid.show('Search history cleared', ToastAndroid.SHORT);
+          },
+        },
+      ],
+    });
   }, []);
 
   const eraseAllLocalData = useCallback(async () => {
     clearAllMMKVStorage();
-    if (Updates.isEnabled) {
-      await Updates.reloadAsync();
-      return;
-    }
     DevSettings.reload('All MMKV storage erased');
   }, []);
 
@@ -265,7 +174,7 @@ const Settings = ({navigation}: Props) => {
     showAppDialog({
       title: 'Erase all local data?',
       message:
-        'This permanently erases every Airflix MMKV store, including settings, installed provider data, Watchlist, Continue watching, download records, and cached state. This cannot be undone. Downloaded media files on disk are not deleted.',
+        'This permanently erases every NgotakStream Qx MMKV store, including settings, installed provider data, Watchlist, Continue watching, download records, and cached state. This cannot be undone. Downloaded media files on disk are not deleted.',
       variant: 'error',
       actions: [
         {label: 'Cancel'},
@@ -292,17 +201,31 @@ const Settings = ({navigation}: Props) => {
     </Animated.View>
   );
 
+  const chipStyle = {
+    flex: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: colors.surfaceContainerHigh,
+    borderRadius: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+  };
+  const chipTextStyle = {color: '#ffffff', fontSize: 12, fontWeight: '600' as const};
+
   return (
     <AmbientBackground>
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
         {/* Sticky Top Header Bar */}
-      <Animated.View 
-        style={[{ 
-          position: 'absolute', top: 0, left: 0, right: 0, 
+      <Animated.View
+        style={[{
+          position: 'absolute', top: 0, left: 0, right: 0,
           flexDirection: 'row', alignItems: 'center',
-          paddingHorizontal: 20, 
+          paddingHorizontal: 20,
           paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) + 5 : 45,
           paddingBottom: 15,
           zIndex: 10,
@@ -331,7 +254,7 @@ const Settings = ({navigation}: Props) => {
           paddingBottom: 120,
           flexGrow: 1,
         }}>
-        
+
         {/* Large Scrolling Header */}
         <View style={{ paddingHorizontal: 20, marginBottom: 24, marginTop: 10 }}>
           <AppText role="headlineLarge" style={{ color: '#ffffff', fontSize: 34 }}>
@@ -340,50 +263,159 @@ const Settings = ({navigation}: Props) => {
         </View>
 
         <View className="px-5">
-          {/* Profile Header Card */}
+          {/* App Header Card (opens About) */}
           <AnimatedSection delay={50}>
-            <View
-              style={{
-                backgroundColor: '#232427', // Silver card
-                borderRadius: 24,
-                padding: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 20,
-              }}>
+            <Pressable
+              onPress={() => {
+                if (settingsStorage.isHapticFeedbackEnabled()) {
+                  ReactNativeHapticFeedback.trigger('impactLight', {
+                    enableVibrateFallback: true,
+                    ignoreAndroidSystemSettings: false,
+                  });
+                }
+                navigation.navigate('About');
+              }}
+              style={({pressed}) => ({
+                opacity: pressed ? 0.92 : 1,
+                transform: [{scale: pressed ? 0.985 : 1}],
+                marginBottom: 24,
+              })}>
               <View
                 style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 20,
-                  backgroundColor: '#383a40',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 16,
+                  backgroundColor: colors.surfaceContainer,
+                  borderRadius: 24,
+                  padding: 20,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.06)',
                 }}>
-                <Image source={{ uri: 'airflix_vector' }} style={{ width: 40, height: 40, tintColor: '#a5c0ff' }} resizeMode="contain" />
-              </View>
-              <View className="justify-center">
-                <AppText role="titleLarge" style={{ color: '#ffffff', fontSize: 22 }}>
-                  Airflix
-                </AppText>
                 <View
                   style={{
-                    backgroundColor: '#383a40',
-                    borderRadius: 12,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    alignSelf: 'flex-start',
-                    marginTop: 6,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}>
-                  <AppText
-                    role="labelSmall"
-                    style={{color: '#a5c0ff', }}>
-                    v{Constants.expoConfig?.version || '1.0.0'}
-                  </AppText>
+                  <View style={{flexDirection: 'row', alignItems: 'center', flex: 1}}>
+                    <View
+                      style={{
+                        width: 52,
+                        height: 52,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: 14,
+                      }}>
+                      <Image
+                        source={require('../../../assets/icon_transparent.png')}
+                        style={{width: 50, height: 50}}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <View style={{flex: 1, justifyContent: 'center'}}>
+                      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <AppText
+                          role="titleLarge"
+                          style={{
+                            color: '#ffffff',
+                            fontSize: 20,
+                            fontWeight: '700',
+                            letterSpacing: 0.2,
+                          }}>
+                          NgotakStream Qx
+                        </AppText>
+                        <View
+                          style={{
+                            marginLeft: 8,
+                            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                            paddingHorizontal: 7,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            borderWidth: 1,
+                            borderColor: 'rgba(16, 185, 129, 0.3)',
+                          }}>
+                          <AppText
+                            style={{
+                              color: '#34D399',
+                              fontSize: 10,
+                              fontWeight: '700',
+                              letterSpacing: 0.5,
+                              textTransform: 'uppercase',
+                            }}>
+                            Active
+                          </AppText>
+                        </View>
+                      </View>
+                      <AppText
+                        style={{
+                          color: colors.onSurfaceVariant,
+                          fontSize: 12,
+                          marginTop: 4,
+                          lineHeight: 16,
+                        }}>
+                        Cinematic streaming, engineered clean
+                      </AppText>
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#2e3036',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginLeft: 10,
+                    }}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color="rgba(255, 255, 255, 0.7)"
+                    />
+                  </View>
+                </View>
+
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    marginTop: 18,
+                    marginBottom: 16,
+                  }}
+                />
+
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                  <View style={chipStyle}>
+                    <MaterialIcons
+                      name="verified"
+                      size={13}
+                      color={colors.primary}
+                      style={{marginRight: 5}}
+                    />
+                    <AppText style={chipTextStyle}>
+                      v{Constants.expoConfig?.version || '1.0.2'}
+                    </AppText>
+                  </View>
+                  <View style={chipStyle}>
+                    <MaterialCommunityIcons
+                      name="cpu-64-bit"
+                      size={14}
+                      color="#60A5FA"
+                      style={{marginRight: 5}}
+                    />
+                    <AppText style={chipTextStyle}>ARM64</AppText>
+                  </View>
+                  <View style={chipStyle}>
+                    <MaterialCommunityIcons
+                      name="puzzle"
+                      size={13}
+                      color="#FBBF24"
+                      style={{marginRight: 5}}
+                    />
+                    <AppText numberOfLines={1} style={chipTextStyle}>
+                      {providerName}
+                    </AppText>
+                  </View>
                 </View>
               </View>
-            </View>
+            </Pressable>
           </AnimatedSection>
 
           {/* 2x2 Grid */}
@@ -414,40 +446,77 @@ const Settings = ({navigation}: Props) => {
             </View>
           </AnimatedSection>
 
-          {/* User Interface Section (duplicate items) */}
-          <AnimatedSection delay={150}>
-            <SettingsSection title="User Interface">
-              <SettingsRow
-                title="Appearance"
-                description="Dark theme"
-                icon="palette-outline"
-                onPress={() => navigation.navigate('Appearance')}
-              />
-              <SettingsRow
-                title="Provider Manager"
-                description="Manage extensions"
-                icon="puzzle-outline"
-                onPress={() => navigation.navigate('Extensions')}
-              />
-              <SettingsRow
-                title="Subtitle Style"
-                description="Customize captions"
-                icon="subtitles-outline"
-                onPress={() => navigation.navigate('SubTitlesPreferences')}
-              />
-              <SettingsRow
-                title="Preferences"
-                icon="tune-variant"
-                divider={false}
-                onPress={() => navigation.navigate('Preferences')}
-              />
-            </SettingsSection>
-          </AnimatedSection>
-
           {/* Network Section */}
           <AnimatedSection delay={200}>
             <SettingsSection title="Network">
               <DnsPreference />
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: colors.outlineVariant,
+                  marginHorizontal: 16,
+                  opacity: 0.5,
+                }}
+              />
+              <View style={{padding: 16}}>
+                <AppText
+                  role="titleSmall"
+                  style={{color: colors.onSurface, fontWeight: '600'}}>
+                  Network retries
+                </AppText>
+                <AppText
+                  role="bodySmall"
+                  style={{
+                    color: colors.onSurfaceVariant,
+                    marginTop: 2,
+                    marginBottom: 10,
+                  }}>
+                  How many times failed requests are retried (4xx and cancelled requests are never retried)
+                </AppText>
+                <View style={{flexDirection: 'row', gap: 8, flexWrap: 'wrap'}}>
+                  {[
+                    {value: 0, label: 'Off'},
+                    {value: 1, label: '1'},
+                    {value: 3, label: '3'},
+                    {value: 5, label: '5'},
+                  ].map(option => {
+                    const selected = networkRetries === option.value;
+                    return (
+                      <Pressable
+                        key={option.value}
+                        accessibilityRole="button"
+                        onPress={() => {
+                          setNetworkRetries(option.value);
+                          settingsStorage.setNetworkRetryCount(option.value);
+                        }}
+                        style={{
+                          backgroundColor: selected
+                            ? colors.secondaryContainer
+                            : colors.surfaceContainerHigh,
+                          borderColor: selected
+                            ? colors.primary
+                            : colors.outlineVariant,
+                          borderRadius: 14,
+                          borderWidth: 1,
+                          minWidth: 56,
+                          alignItems: 'center',
+                          paddingHorizontal: 14,
+                          paddingVertical: 8,
+                        }}>
+                        <AppText
+                          role="labelLargeEmphasized"
+                          style={{
+                            color: selected
+                              ? colors.onSecondaryContainer
+                              : colors.onSurface,
+                          }}>
+                          {option.label}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
             </SettingsSection>
           </AnimatedSection>
 
@@ -470,6 +539,11 @@ const Settings = ({navigation}: Props) => {
             <SettingsSection title="Data Management">
               <SettingsRow
                 title="Clear Cache"
+                description={
+                  cacheSize
+                    ? `Cached files: ${cacheSize}`
+                    : 'Cached thumbnails, artwork & responses'
+                }
                 trailing={
                   <IconButton
                     icon="delete-outline"
@@ -477,6 +551,18 @@ const Settings = ({navigation}: Props) => {
                     onPress={clearCacheHandler}
                   />
                 }
+              />
+              <SettingsRow
+                title="Clear watch history"
+                description="Remove all Continue watching entries"
+                icon="history"
+                onPress={confirmClearWatchHistory}
+              />
+              <SettingsRow
+                title="Clear search history"
+                description="Remove recent searches from the Search screen"
+                icon="magnify-close"
+                onPress={confirmClearSearchHistory}
               />
               <SettingsRow
                 title="Erase all local data"
@@ -487,60 +573,6 @@ const Settings = ({navigation}: Props) => {
               />
             </SettingsSection>
           </AnimatedSection>
-
-          {/* About & GitHub section */}
-          <AnimatedSection delay={400}>
-            <SettingsSection title="About">
-              <SettingsRow
-                title="About Airflix"
-                icon="information-outline"
-                onPress={() => navigation.navigate('About')}
-              />
-              <GitHubStarButton primary={colors.primary} />
-            </SettingsSection>
-          </AnimatedSection>
-          
-          {/* Updates Section */}
-          <AnimatedSection delay={450}>
-            <SettingsSection title="Updates">
-              {!Constants.expoConfig?.extra?.isPlayStore && (
-                <>
-                  <SettingsSwitchRow
-                    title="Auto install updates"
-                    description="Download and install new releases automatically"
-                    value={autoDownload}
-                    onValueChange={next => {
-                      setAutoDownload(next);
-                      settingsStorage.setAutoDownloadEnabled(next);
-                    }}
-                  />
-                  <SettingsSwitchRow
-                    title="Check on startup"
-                    description="Look for a new release when Airflix opens"
-                    value={autoCheckUpdate}
-                    onValueChange={next => {
-                      setAutoCheckUpdate(next);
-                      settingsStorage.setAutoCheckUpdateEnabled(next);
-                    }}
-                  />
-                  <SettingsRow
-                    title="Check for updates"
-                    description="Compare this build with the latest release"
-                    icon="update"
-                    divider={false}
-                    trailing={
-                      updateLoading ? <LoadingIndicator size={14} /> : undefined
-                    }
-                    onPress={
-                      updateLoading
-                        ? undefined
-                        : () => checkForUpdate(setUpdateLoading, autoDownload, true)
-                    }
-                  />
-                </>
-              )}
-            </SettingsSection>
-          </AnimatedSection>
         </View>
       </Animated.ScrollView>
     </View>
@@ -549,4 +581,3 @@ const Settings = ({navigation}: Props) => {
 };
 
 export default Settings;
-
