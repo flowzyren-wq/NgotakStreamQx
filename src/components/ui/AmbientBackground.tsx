@@ -4,6 +4,30 @@ import Svg, {Defs, RadialGradient, LinearGradient, Stop, Rect} from 'react-nativ
 import {useM3Colors} from '../../theme/M3PaletteContext';
 import useThemeStore from '../../lib/zustand/themeStore';
 
+const hexToRgb = (hex: string): [number, number, number] => {
+  const clean = hex.replace('#', '');
+  const full =
+    clean.length === 3
+      ? clean
+          .split('')
+          .map(char => char + char)
+          .join('')
+      : clean;
+  const value = parseInt(full.slice(0, 6), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+};
+
+const mixColor = (from: string, to: string, amount: number) => {
+  const [r1, g1, b1] = hexToRgb(from);
+  const [r2, g2, b2] = hexToRgb(to);
+  const mixed = [
+    Math.round(r1 + (r2 - r1) * amount),
+    Math.round(g1 + (g2 - g1) * amount),
+    Math.round(b1 + (b2 - b1) * amount),
+  ];
+  return `#${mixed.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+};
+
 interface AmbientBackgroundProps extends ViewProps {
   children?: React.ReactNode;
 }
@@ -20,13 +44,13 @@ const AmbientBackground = ({children, style, ...rest}: AmbientBackgroundProps) =
     );
   }
 
-  // Hardcode OpenTune mesh gradient aesthetic colors
-  const color1 = '#3C306E'; // Deep purple/blue top left
-  const color2 = '#5E4978'; // Soft purple/pink top right
-  const color3 = '#2D305A'; // Deep navy middle left
-  const color4 = '#624163'; // Warm purple middle right
-  const color5 = '#242040'; // Very dark indigo bottom
-  const baseColor = '#000000'; // Enforce strict AMOLED black background instead of silver/grey surface
+  // Mesh gradient colors derived from the active theme palette
+  const color1 = mixColor(colors.primary, '#000000', 0.72);
+  const color2 = mixColor(colors.tertiary, '#000000', 0.74);
+  const color3 = mixColor(colors.secondary, '#000000', 0.76);
+  const color4 = mixColor(colors.tertiary, '#000000', 0.8);
+  const color5 = mixColor(colors.primary, '#000000', 0.86);
+  const baseColor = colors.background;
 
   return (
     <View style={[{flex: 1, backgroundColor: baseColor}, style]} {...rest}>
