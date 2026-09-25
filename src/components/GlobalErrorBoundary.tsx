@@ -11,7 +11,7 @@ import {
 import useThemeStore from '../lib/zustand/themeStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Application from 'expo-application';
-import * as Updates from 'expo-updates';
+
 import Constants from 'expo-constants';
 import {showAppDialog} from '../lib/zustand/appDialogStore';
 import {getCrashlytics, isFirebaseNativeReady} from '../lib/utils/firebaseSafe';
@@ -93,13 +93,8 @@ export default class GlobalErrorBoundary extends React.Component<
 
   handleRestart = async () => {
     try {
-      // Try to reload the app using Expo Updates
-      if (Updates.isEnabled) {
-        await Updates.reloadAsync();
-      } else {
-        // Fallback: reset the error boundary state
-        this.resetError();
-      }
+      // Reset the error boundary state
+      this.resetError();
     } catch (reloadError) {
       console.error('Failed to reload app:', reloadError);
       this.resetError();
