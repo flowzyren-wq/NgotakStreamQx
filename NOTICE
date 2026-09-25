@@ -1,0 +1,21 @@
+NgotakStream Qx
+Copyright 2026 QxShaa
+
+Proyek ini dilisensikan di bawah Apache License, Version 2.0 (lihat file LICENSE).
+
+Proyek ini adalah turunan (derivative work) dari perangkat lunak open-source berikut,
+yang atribusinya wajib dipertahankan:
+
+  * AirFlix  - https://github.com/d0x-dev/AirFlix
+    Dilisensikan di bawah Apache License, Version 2.0.
+    Basis kode aplikasi (React Native / Expo), modul native Android, plugin Expo,
+    dan paket provider bawaan (src/lib/services/builtinAirflix.ts) berasal dari AirFlix.
+
+  * Vega App - https://github.com/Zenda-Cross/vega-app
+    Proyek upstream asal AirFlix. Lihat repositori tersebut untuk ketentuan lisensinya.
+
+Perubahan oleh QxShaa: rebranding ke "NgotakStream Qx", rekonstruksi fitur dari APK
+NgotakStreamQx v1.0.3 (bagian Hentai/Adult, halaman About, tema, statistik, dll.).
+Daftar lengkap ada di CHANGES.md.
+
+Dependensi pihak ketiga beserta lisensinya tercantum di THIRD_PARTY_NOTICES.md.
