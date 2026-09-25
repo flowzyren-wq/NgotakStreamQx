@@ -76,6 +76,31 @@ export class ExtensionManager {
     {module: ProviderModule; cachedAt: number}
   >();
 
+  /**
+   * Replace the legacy upstream provider source with the default
+   * NgotakStream Qx (valorafilm) provider source. Runs once.
+   */
+  private migrateToValoraFilmProviders(): void {
+    try {
+      if (mainStorage.getBool('hasMigratedValoraProviders_v1', false)) {
+        return;
+      }
+      extensionStorage.getProviderSources().forEach(source => {
+        if (source.url.includes('airflix-providers')) {
+          extensionStorage.removeProviderSource(source.author);
+        }
+      });
+      extensionStorage.addProviderSources(
+        'B7ByteMe',
+        'https://raw.githubusercontent.com/B7ByteMe/valorafilm-providers/refs/heads/main',
+      );
+      extensionStorage.setDefaultProviderSource('B7ByteMe');
+      mainStorage.setBool('hasMigratedValoraProviders_v1', true);
+    } catch (error) {
+      console.warn('Failed to migrate to the default provider source:', error);
+    }
+  }
+
   static getInstance(): ExtensionManager {
     if (!ExtensionManager.instance) {
       ExtensionManager.instance = new ExtensionManager();
@@ -415,48 +440,82 @@ export class ExtensionManager {
     try {
       this.migrateLegacyCustomProviderSource();
 
-      const isFirstLaunch = mainStorage.getBool('isFirstLaunch', true);
-      if (isFirstLaunch && extensionStorage.getProviderSources().length === 0) {
-                // Pre-add d0x-dev source
-        extensionStorage.addProviderSources('d0x-dev', 'https://raw.githubusercontent.com/d0x-dev/airflix-providers/refs/heads/main');
-        extensionStorage.setDefaultProviderSource('d0x-dev');
+      this.migrateToValoraFilmProviders();
 
-        // Pre-install airflix provider from memory bundle
+      if (extensionStorage.getProviderSources().length === 0) {
+        extensionStorage.addProviderSources(
+          'B7ByteMe',
+          'https://raw.githubusercontent.com/B7ByteMe/valorafilm-providers/refs/heads/main',
+        );
+        extensionStorage.setDefaultProviderSource('B7ByteMe');
+      }
+
+      if (
+        !extensionStorage
+          .getInstalledProviders()
+          .some(provider => provider.value === 'valorafilm')
+      ) {
+        const defaultSource = this.getActiveSource() || {
+          author: 'B7ByteMe',
+          url: 'https://raw.githubusercontent.com/B7ByteMe/valorafilm-providers/refs/heads/main',
+        };
+        const valoraProvider: ProviderExtension = {
+          value: 'valorafilm',
+          display_name: 'NgotakStream Qx',
+          source: {
+            author: defaultSource.author,
+            url: defaultSource.url,
+          },
+          version: '2.27',
+          icon: '',
+          disabled: false,
+          type: 'global',
+          installed: true,
+        };
+
         try {
-          const { builtinAirflix } = require('./builtinAirflix');
-          const airflixProvider: ProviderExtension = {
-            value: 'airflix',
-            display_name: 'Airflix',
-            source: {
-              author: 'd0x-dev',
-              url: 'https://raw.githubusercontent.com/d0x-dev/airflix-providers/refs/heads/main'
-            },
-            version: '2.27',
-            icon: '',
-            disabled: false,
-            type: 'global',
-            installed: true
-          };
-          
-                      extensionStorage.installProvider(airflixProvider);
-            
+          const manifest = await this.fetchManifest(defaultSource, false).catch(
+            () => [] as ProviderExtension[],
+          );
+          const remoteProvider = manifest.find(
+            provider => provider.value === 'valorafilm',
+          );
+          if (remoteProvider?.version) {
+            valoraProvider.version = remoteProvider.version;
+          }
+          console.log('Auto-downloading NgotakStream Qx provider on startup...');
+          await this.installProvider(valoraProvider);
+          console.log('Successfully auto-downloaded NgotakStream Qx provider');
+        } catch (networkError) {
+          console.warn(
+            'Failed to download NgotakStream Qx provider from network, falling back to bundled version:',
+            networkError,
+          );
+          // Pre-install the provider from the bundled memory copy
+          try {
+            const {builtinAirflix} = require('./builtinAirflix');
+            extensionStorage.installProvider(valoraProvider);
+
             const modulesObj: Record<string, string> = {};
             for (const [fileName, fileCode] of Object.entries(builtinAirflix)) {
               if (fileName !== 'manifest') {
-                 modulesObj[fileName] = fileCode as string;
+                modulesObj[fileName] = fileCode as string;
               }
             }
-            
+
             extensionStorage.cacheProviderModules({
-              value: 'airflix',
-              sourceAuthor: 'd0x-dev',
-              version: '2.27',
+              value: 'valorafilm',
+              sourceAuthor: defaultSource.author,
+              version: valoraProvider.version,
               cachedAt: Date.now(),
-              modules: modulesObj
+              modules: modulesObj,
             });
-            mainStorage.setBool('isFirstLaunch', false);
-        } catch (err) {
-          console.warn('Failed to pre-install airflix provider from memory:', err);
+          } catch (err) {
+            console.error(
+              'Failed to pre-install bundled NgotakStream Qx provider:',
+              err,
+            );
+          }
         }
       }
 
