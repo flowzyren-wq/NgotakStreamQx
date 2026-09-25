@@ -12,7 +12,9 @@ describe('download identity and filenames', () => {
     expect(createSeriesDownloadId('Show', 'Season 1', 0)).toBe(
       'Show_SSeason 1_E1',
     );
-    expect(createDirectDownloadId('Movie', 2)).toBe('Movie_direct_2');
+    expect(createDirectDownloadId('Movie', 'Default', 2)).toBe(
+      'Movie_SDefault_E3',
+    );
   });
 
   it('keeps identity separate from safe physical filenames', () => {

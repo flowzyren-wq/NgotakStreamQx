@@ -44,7 +44,9 @@ describe('downloads store', () => {
     expect(createSeriesDownloadId('NgotakStream Show', 'Season 2', 2)).toBe(
       'NgotakStream Show_SSeason 2_E3',
     );
-    expect(createDirectDownloadId('NgotakStream Movie', 0)).toBe('NgotakStream Movie_direct_0');
+    expect(createDirectDownloadId('NgotakStream Movie', 'Default', 0)).toBe(
+      'NgotakStream Movie_SDefault_E1',
+    );
   });
 
   it('stores downloads by their desktop-compatible ID', () => {
@@ -78,7 +80,7 @@ describe('downloads store', () => {
   });
 
   it('updates progress and completion state', () => {
-    const id = createDirectDownloadId('NgotakStream Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 'Default', 0);
     const store = useDownloadsStore.getState();
     store.enqueueDownload({
       id,
@@ -104,7 +106,7 @@ describe('downloads store', () => {
   });
 
   it('does not let late progress events overwrite a network pause', () => {
-    const id = createDirectDownloadId('NgotakStream Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 'Default', 0);
     const store = useDownloadsStore.getState();
     store.enqueueDownload({
       id,
@@ -167,7 +169,7 @@ describe('downloads store', () => {
   });
 
   it('marks active persisted work as interrupted during reconciliation', () => {
-    const id = createDirectDownloadId('NgotakStream Movie', 0);
+    const id = createDirectDownloadId('NgotakStream Movie', 'Default', 0);
     useDownloadsStore.getState().enqueueDownload({
       id,
       title: 'NgotakStream Movie',

@@ -136,6 +136,34 @@ jest.mock('react-native-haptic-feedback', () => ({
   trigger: jest.fn(),
 }));
 
+// AppDialog (versi APK) merender judul/pesan lewat Compose AlertDialog tanpa
+// testID, jadi cari berdasarkan teks yang tampil.
+const hasDialogText = (
+  root: renderer.ReactTestRenderer,
+  text: string,
+): boolean =>
+  root.root.findAll(
+    node => typeof node.type === 'string' && node.props.children === text,
+  ).length > 0;
+
+// Tekan tombol aksi AppDialog berdasarkan label (tombol Compose tidak
+// meneruskan testID).
+const pressDialogAction = (root: renderer.ReactTestRenderer, label: string) => {
+  // Dialog dirender paling akhir, jadi ambil kecocokan terakhir.
+  const matches = root.root.findAll(
+    node => typeof node.type === 'string' && node.props.children === label,
+  );
+  const labelNode = matches[matches.length - 1];
+  let node: typeof labelNode | null = labelNode;
+  while (node && typeof node.props.onPress !== 'function') {
+    node = node.parent;
+  }
+  if (!node) {
+    throw new Error(`Dialog action "${label}" not found`);
+  }
+  node.props.onPress();
+};
+
 describe('Extensions provider installation', () => {
   let tree: renderer.ReactTestRenderer | undefined;
 
@@ -214,12 +242,10 @@ describe('Extensions provider installation', () => {
     });
 
     expect(mockSetProvider).not.toHaveBeenCalled();
+    expect(hasDialogText(tree!, 'Error')).toBe(true);
     expect(
-      tree!.root.findByProps({testID: 'app-dialog-title'}).props.children,
-    ).toBe('Error');
-    expect(
-      tree!.root.findByProps({testID: 'app-dialog-message'}).props.children,
-    ).toBe('Failed to install provider. Please try again.');
+      hasDialogText(tree!, 'Failed to install provider. Please try again.'),
+    ).toBe(true);
   });
 
   it('activates the first provider installed during initial setup', async () => {
@@ -486,14 +512,10 @@ describe('Extensions provider installation', () => {
     });
 
     expect(mockUninstallProvider).not.toHaveBeenCalled();
-    expect(
-      tree!.root.findByProps({testID: 'app-dialog-title'}).props.children,
-    ).toBe('Uninstall Provider');
+    expect(hasDialogText(tree!, 'Uninstall Provider')).toBe(true);
 
     act(() => {
-      tree!.root
-        .findByProps({testID: 'confirm-uninstall-existing'})
-        .props.onPress();
+      pressDialogAction(tree!, 'Uninstall');
     });
 
     expect(mockUninstallProvider).toHaveBeenCalledWith('existing', 'fixture');

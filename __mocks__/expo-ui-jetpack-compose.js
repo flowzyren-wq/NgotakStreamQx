@@ -33,7 +33,19 @@ textField.Prefix = slotComponent;
 textField.Suffix = slotComponent;
 textField.SupportingText = slotComponent;
 
+const alertDialog = ({children, ...props}) =>
+  React.createElement(View, props, children);
+alertDialog.Title = slotComponent;
+alertDialog.Text = slotComponent;
+alertDialog.ConfirmButton = slotComponent;
+alertDialog.DismissButton = slotComponent;
+alertDialog.Icon = slotComponent;
+
 module.exports = {
+  AlertDialog: alertDialog,
+  BasicAlertDialog: passthrough,
+  getMaterialColors: () => null,
+  isDynamicColorAvailable: false,
   Host: passthrough,
   RNHostView: passthrough,
   Surface: passthrough,

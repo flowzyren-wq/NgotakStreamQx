@@ -441,6 +441,6 @@ describe('NgotakStream Qx sync manifest', () => {
       manifest('mobile', {downloads: {episode}}),
     ]);
 
-    expect(Object.keys(merged.downloads)).toEqual(['series:tt1234:7:e1']);
+    expect(Object.keys(merged.downloads)).toEqual(['series:tt1234:7:i0']);
   });
 });
