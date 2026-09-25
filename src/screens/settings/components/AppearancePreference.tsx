@@ -3,7 +3,6 @@ import {Platform, Pressable, View, LayoutAnimation} from 'react-native';
 import {isDynamicColorAvailable} from '@expo/ui/jetpack-compose';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import useThemeStore from '../../../lib/zustand/themeStore';
-import {M3_SEEDS} from '../../../theme/seeds';
 import {useM3Colors} from '../../../theme/M3PaletteContext';
 import AppText from '../../../components/ui/Text';
 import Surface from '../../../components/ui/Surface';
@@ -13,8 +12,8 @@ import {settingsStorage} from '../../../lib/storage';
 const AppearancePreference = () => {
   const source = useThemeStore(state => state.source);
   const setSource = useThemeStore(state => state.setSource);
-  const primary = useThemeStore(state => state.primary);
-  const setPrimary = useThemeStore(state => state.setPrimary);
+  const setActiveProfile = useThemeStore(state => state.setActiveProfile);
+  const activeProfileId = useThemeStore(state => state.activeProfileId);
   const isPureBlack = useThemeStore(state => state.isPureBlack);
   const setPureBlack = useThemeStore(state => state.setPureBlack);
   const useLinoteeFont = useThemeStore(state => state.useLinoteeFont);
@@ -24,7 +23,7 @@ const AppearancePreference = () => {
     settingsStorage.isDynamicInfoAccentEnabled(),
   );
 
-  const wallpaperActive = source === 'wallpaper';
+  const wallpaperActive = source === 'wallpaper' && !activeProfileId;
 
   return (
     <View style={{ gap: 24, paddingBottom: 20 }}>
@@ -39,6 +38,7 @@ const AppearancePreference = () => {
             disabled={!isDynamicColorAvailable}
             onPress={() => {
                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+               setActiveProfile(null);
                setSource('wallpaper');
             }}
             className="flex-row items-center p-5"
@@ -80,57 +80,6 @@ const AppearancePreference = () => {
               />
             ) : null}
           </Pressable>
-
-          <View style={{ height: 1, backgroundColor: colors.outlineVariant, marginHorizontal: 20, opacity: 0.5 }} />
-
-          <View className="p-5">
-            <AppText role="titleMedium" style={{ color: source === 'custom' ? colors.primary : colors.onSurface, fontWeight: '600' }}>
-              Curated Palettes
-            </AppText>
-            <AppText role="bodyMedium" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
-              Handpicked seeds designed for dark mode
-            </AppText>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 16 }}>
-              {M3_SEEDS.map(seed => {
-                const isSelected =
-                  source === 'custom' &&
-                  primary.toLowerCase() === seed.color.toLowerCase();
-                return (
-                  <Pressable
-                    key={seed.color}
-                    accessibilityRole="button"
-                    onPress={() => {
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                      setSource('custom');
-                      setPrimary(seed.color);
-                    }}
-                    style={({
-                      backgroundColor: seed.color,
-                      borderColor: isSelected
-                        ? colors.primary
-                        : 'transparent',
-                      borderRadius: 24,
-                      borderWidth: isSelected ? 3 : 0,
-                      height: 56,
-                      width: 56,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      elevation: isSelected ? 4 : 0,
-                      transform: [{ scale: isSelected ? 1.05 : 1 }]
-                    })}>
-                    {isSelected && (
-                       <View style={{ width: 64, height: 64, position: 'absolute', borderRadius: 32, borderWidth: 2, borderColor: seed.color, opacity: 0.4 }} />
-                    )}
-                    <MaterialCommunityIcons
-                      name={isSelected ? 'check' : 'palette-swatch-outline'}
-                      size={24}
-                      color={isSelected ? '#ffffff' : 'rgba(255,255,255,0.7)'}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
         </Surface>
       </View>
 

@@ -4,8 +4,8 @@ import React from 'react';
 import {Pressable, View, StatusBar, Platform} from 'react-native';
 import type {SettingsStackParamList} from '../../App';
 import AppearancePreference from './components/AppearancePreference';
+import ThemeStudio from './components/ThemeStudio';
 import AppText from '../../components/ui/Text';
-import {useM3Colors} from '../../theme/M3PaletteContext';
 import AmbientBackground from '../../components/ui/AmbientBackground';
 import Animated, {
   FadeInUp,
@@ -17,12 +17,11 @@ import Animated, {
   Extrapolation,
   interpolateColor,
 } from 'react-native-reanimated';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<SettingsStackParamList, 'Appearance'>;
 
 const Appearance = ({navigation}: Props) => {
-  const colors = useM3Colors();
   const scrollY = useSharedValue(0);
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -101,6 +100,8 @@ const Appearance = ({navigation}: Props) => {
 
           <View className="px-5">
             <AppearancePreference />
+            <View style={{height: 24}} />
+            <ThemeStudio />
           </View>
         </Animated.ScrollView>
       </View>

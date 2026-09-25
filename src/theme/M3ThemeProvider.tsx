@@ -10,13 +10,29 @@ import {
 } from './seeds';
 import {M3HostThemeContext, M3PaletteContext} from './M3PaletteContext';
 import useThemeStore from '../lib/zustand/themeStore';
+import {createPaletteFromProfile} from './themeProfiles';
 
 export const FIXED_THEME_PRIMARY = '#E4E4E4';
 
 export const M3ThemeProvider = ({children}: {children: React.ReactNode}) => {
   const primary = useThemeStore(state => state.primary);
   const source = useThemeStore(state => state.source);
+  const previewProfile = useThemeStore(state => state.previewProfile);
+  const profiles = useThemeStore(state => state.profiles);
+  const activeProfileId = useThemeStore(state => state.activeProfileId);
+  const activeProfile = useMemo(
+    () =>
+      activeProfileId
+        ? profiles.find(profile => profile.id === activeProfileId) ?? null
+        : null,
+    [activeProfileId, profiles],
+  );
+  // A live preview (theme editor) wins over the saved active profile.
+  const themeProfile = previewProfile ?? activeProfile;
   const palette = useMemo(() => {
+    if (themeProfile) {
+      return createPaletteFromProfile(themeProfile);
+    }
     const generatedPalette = getMaterialColors({
       scheme: 'dark',
       ...(source === 'custom' ? {seedColor: primary} : {}),
@@ -36,13 +52,18 @@ export const M3ThemeProvider = ({children}: {children: React.ReactNode}) => {
       outline: '#909090',
       outlineVariant: '#454545',
     } as const;
-  }, [primary, source]);
+  }, [primary, source, themeProfile]);
+  const hostSeedColor = themeProfile
+    ? themeProfile.primary
+    : source === 'custom'
+      ? primary
+      : undefined;
   const hostTheme = useMemo(
     () => ({
       colorScheme: 'dark' as const,
-      ...(source === 'custom' ? {seedColor: primary} : {}),
+      seedColor: hostSeedColor,
     }),
-    [primary, source],
+    [hostSeedColor],
   );
 
   const style = useMemo(() => {
