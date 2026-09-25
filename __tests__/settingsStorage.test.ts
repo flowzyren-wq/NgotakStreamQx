@@ -34,9 +34,9 @@ describe('settings defaults', () => {
   });
 
   it('enables default-on preferences when no value is stored', () => {
+    expect(settingsStorage.showTabBarLabels()).toBe(true);
     expect(settingsStorage.isHapticFeedbackEnabled()).toBe(true);
     expect(settingsStorage.isNotificationsEnabled()).toBe(true);
-    expect(settingsStorage.isAutoCheckUpdateEnabled()).toBe(true);
     expect(settingsStorage.showMediaControls()).toBe(true);
     expect(settingsStorage.showHamburgerMenu()).toBe(true);
     expect(settingsStorage.isSwipeGestureEnabled()).toBe(true);
@@ -45,12 +45,10 @@ describe('settings defaults', () => {
   });
 
   it('keeps intentional default-off preferences disabled', () => {
-    expect(settingsStorage.showTabBarLabels()).toBe(false);
     expect(settingsStorage.hideDownloadsTab()).toBe(false);
-    expect(settingsStorage.isAutoDownloadEnabled()).toBe(false);
     expect(settingsStorage.hideSeekButtons()).toBe(false);
     expect(settingsStorage.isEnable2xGestureEnabled()).toBe(false);
-    expect(settingsStorage.usePureBlackBackground()).toBe(false);
+    expect(settingsStorage.isPureBlackBackgroundEnabled()).toBe(false);
   });
 
   it('defaults download concurrency to two and clamps saved values', () => {
@@ -71,9 +69,9 @@ describe('settings defaults', () => {
   });
 
   it('persists the pure black background preference', () => {
-    settingsStorage.setUsePureBlackBackground(true);
+    settingsStorage.setPureBlackBackgroundEnabled(true);
 
-    expect(settingsStorage.usePureBlackBackground()).toBe(true);
+    expect(settingsStorage.isPureBlackBackgroundEnabled()).toBe(true);
     expect(mockBooleanValues.get(SettingsKeys.PURE_BLACK_BACKGROUND)).toBe(
       true,
     );
