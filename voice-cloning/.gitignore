@@ -1,0 +1,9 @@
+# local voice-cloning workspace - never commit these
+.venv/
+venv/
+cuda-stubs/
+xtts-model/
+takes/
+*_reference_22k.wav
+__pycache__/
+*.pyc
