@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import React, {useEffect, useState} from 'react';
 import {Image, TouchableOpacity, View} from 'react-native';
 import Text from './ui/Text';
+import {useM3Colors} from '../theme/M3PaletteContext';
 
 type EpisodeRowContentProps = {
   title: string;
@@ -36,6 +37,7 @@ const EpisodeRowContent = ({
   onShowDetailsPressIn,
   onShowDetails,
 }: EpisodeRowContentProps) => {
+  const colors = useM3Colors();
   const imageUri = getValidImageUri(image);
   const descriptionText = description?.trim();
   const sourceEndsWithEllipsis = Boolean(
@@ -89,7 +91,8 @@ const EpisodeRowContent = ({
     <>
       {imageUri && !imageFailed ? (
         <Image
-          source={{uri: imageUri}}
+          source={{uri: imageUri, cache: 'force-cache'}}
+          progressiveRenderingEnabled={true}
           resizeMode="cover"
           onError={() => setImageFailed(true)}
           style={{borderRadius: 4, height: 56, width: 88}}
@@ -98,7 +101,7 @@ const EpisodeRowContent = ({
         <View
           className="items-center justify-center"
           style={{
-            backgroundColor: '#171717',
+            backgroundColor: colors.surfaceContainerLow,
             borderRadius: 4,
             height: 56,
             width: 88,

@@ -1,4 +1,5 @@
 import {View, Platform, Dimensions, FlatList} from 'react-native';
+import Animated, {FadeInUp} from 'react-native-reanimated';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {WatchListStackParamList} from '../App';
@@ -54,7 +55,9 @@ const WatchList = () => {
 
   return (
     <AmbientBackground>
-      <View className="flex-1 items-center justify-center">
+      <Animated.View
+        entering={FadeInUp.springify()}
+        className="flex-1 items-center justify-center">
         <StatusBar />
 
         <View
@@ -103,7 +106,7 @@ const WatchList = () => {
           </View>
         )}
       </View>
-    </View>
+    </Animated.View>
     </AmbientBackground>
   );
 };

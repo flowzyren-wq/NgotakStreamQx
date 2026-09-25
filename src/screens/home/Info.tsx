@@ -6,6 +6,7 @@ import {
 import {StatusBar} from 'expo-status-bar';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, RefreshControl, View} from 'react-native';
+import Animated, {FadeInUp} from 'react-native-reanimated';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {HomeStackParamList, TabStackParamList} from '../../App';
 import Button from '../../components/ui/Button';
@@ -78,12 +79,12 @@ export default function Info({route, navigation}: Props): React.JSX.Element {
     meta?.poster ||
     route.params.poster ||
     info?.image ||
-    'https://placehold.jp/24/363636/ffffff/500x750.png?text=Airflix';
+    'https://placehold.jp/24/363636/ffffff/500x750.png?text=NgotakStream+Qx';
   const accentPoster = route.params.poster || meta?.poster || info?.image;
   const backgroundImage =
     meta?.background ||
     info?.image ||
-    'https://placehold.jp/24/363636/ffffff/900x1200.png?text=Airflix';
+    'https://placehold.jp/24/363636/ffffff/900x1200.png?text=NgotakStream+Qx';
   useEffect(() => {
     if (!dynamicInfoAccentEnabled) {
       imageAccentRequest.current += 1;
@@ -260,7 +261,9 @@ export default function Info({route, navigation}: Props): React.JSX.Element {
   return (
     <QueryErrorBoundary>
       <M3PaletteContext.Provider value={detailColors}>
-        <View style={{backgroundColor: detailColors.background, flex: 1}}>
+        <Animated.View
+          entering={FadeInUp.springify()}
+          style={{backgroundColor: detailColors.background, flex: 1}}>
           <StatusBarScrim visible={statusBarScrimVisible} />
           <StatusBar style="light" />
           <FlatList
@@ -350,7 +353,7 @@ export default function Info({route, navigation}: Props): React.JSX.Element {
             type={info?.type}
             visible={storyVisible}
           />
-        </View>
+        </Animated.View>
       </M3PaletteContext.Provider>
     </QueryErrorBoundary>
   );

@@ -103,7 +103,7 @@ const CompactChip = ({label}: {label: string}) => {
   return (
     <View
       style={{
-        backgroundColor: '#171717',
+        backgroundColor: colors.surfaceContainer,
         borderRadius: 8,
         paddingHorizontal: 9,
         paddingVertical: 5,

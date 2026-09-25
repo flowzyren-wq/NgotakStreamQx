@@ -94,7 +94,6 @@ const SearchSubtitles = ({
           },
         },
       );
-      console.log('openSubtitles⭐', response);
       const data = await response.json();
       setLoading(false);
       if (data?.length === 0) {

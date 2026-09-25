@@ -4,6 +4,7 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {StatusBar} from 'expo-status-bar';
 import React, {useCallback, useMemo} from 'react';
 import {Dimensions, FlatList, Platform, View} from 'react-native';
+import Animated, {FadeInUp} from 'react-native-reanimated';
 import type {DownloadsStackParamList} from '../../App';
 import MediaPosterCard from '../../components/MediaPosterCard';
 import AppText from '../../components/ui/Text';
@@ -44,7 +45,7 @@ const Downloads = () => {
 
   return (
     <AmbientBackground>
-      <View className="flex-1">
+      <Animated.View entering={FadeInUp.springify()} className="flex-1">
         <StatusBar />
         <FlatList
           data={groups}
@@ -102,7 +103,7 @@ const Downloads = () => {
         }
         showsVerticalScrollIndicator={false}
       />
-      </View>
+      </Animated.View>
     </AmbientBackground>
   );
 };

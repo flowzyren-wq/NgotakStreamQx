@@ -1,6 +1,6 @@
 import {View, FlatList, Pressable, Text} from 'react-native';
 import React, {useState, useEffect, useCallback, memo, useRef} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SearchStackParamList, TabStackParamList} from '../App';
@@ -146,6 +146,11 @@ const Search = () => {
   const [searchText, setSearchText] = useState('');
   const [searchHistory, setSearchHistory] = useState<string[]>(
     MMKV.getArray<string>('searchHistory') || [],
+  );
+  useFocusEffect(
+    useCallback(() => {
+      setSearchHistory(MMKV.getArray<string>('searchHistory') || []);
+    }, []),
   );
   const [searchResults, setSearchResults] = useState<OMDBResult[]>([]);
   const searchFieldRef = useRef<SearchFieldRef>(null);
