@@ -1,0 +1,36 @@
+name: fetch-apk
+on:
+  push:
+    branches: [ 'arena/**' ]
+    paths: [ '.github/workflows/fetch.yml' ]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK + tools
+        run: |
+          set -x
+          mkdir -p _work && cd _work
+          pip install -q gdown
+          gdown 1Y6H_R4lgyvOHTao5w00BZTY7k2hoBgZV -O app.apk
+          curl -sSL -o apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.12.1/apktool_2.12.1.jar
+          curl -sSL -o jadx.zip https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip
+          unzip -q jadx.zip -d jadx && rm jadx.zip
+          BT=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          {
+            echo "== ls"; ls -la app.apk; sha256sum app.apk
+            echo "== unzip -t"; unzip -tq app.apk
+            echo "== badging"; $ANDROID_HOME/build-tools/$BT/aapt2 dump badging app.apk
+            echo "== apksigner"; $ANDROID_HOME/build-tools/$BT/apksigner verify --verbose --print-certs app.apk
+            echo "== listing"; unzip -l app.apk
+          } > report.txt 2>&1 || true
+          ls -la; du -sh *
+      - name: Commit
+        run: |
+          git config user.name "ci-bot"; git config user.email "ci-bot@users.noreply.github.com"
+          git add -f _work
+          git commit -qm "tmp: fetched apk + tools"
+          git push
