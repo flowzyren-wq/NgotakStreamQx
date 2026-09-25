@@ -1451,7 +1451,8 @@ const Player = ({route}: Props): React.JSX.Element => {
       seekColor: primary,
       showDuration: true,
       toggleResizeModeOnFullscreen: false,
-      fullscreenOrientation: 'default' as const,
+      // Value taken verbatim from the APK; the media-console typings don't list it.
+      fullscreenOrientation: 'default' as any,
       fullscreenAutorotate: true,
       onShowControls: () => setShowControls(true),
       onHideControls: () => setShowControls(false),

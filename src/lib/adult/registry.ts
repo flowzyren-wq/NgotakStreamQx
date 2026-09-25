@@ -27,7 +27,7 @@ export function loadAdultRegistry(): AdultRegistry | null {
   } catch {
     cachedRegistry = null;
   }
-  return cachedRegistry;
+  return cachedRegistry ?? null;
 }
 
 export function resetRegistryCache(): void {

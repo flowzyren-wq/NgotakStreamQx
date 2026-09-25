@@ -56,6 +56,7 @@ jest.mock('../src/lib/storage', () => ({
     getDownloadLocationConfig: () => undefined,
     getDownloadConcurrency: () => mockDownloadConcurrency,
     getPrimaryColor: () => '#ffffff',
+    isNotificationsEnabled: () => true,
     setDownloadLocation: jest.fn(),
   },
 }));
