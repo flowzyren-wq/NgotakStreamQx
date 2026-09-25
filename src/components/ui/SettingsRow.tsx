@@ -7,6 +7,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import AppText from './Text';
+import {useM3Colors} from '../../theme/M3PaletteContext';
 
 interface SettingsRowProps {
   title: string;
@@ -25,6 +26,7 @@ const SettingsRow = ({
   trailing,
   divider = true,
 }: SettingsRowProps) => {
+  const colors = useM3Colors();
   const scale = useSharedValue(1);
   
   const handlePressIn = () => {
@@ -49,9 +51,7 @@ const SettingsRow = ({
         onPressOut={handlePressOut}
         onPress={onPress}
         style={({pressed}) => ({
-          backgroundColor: pressed 
-            ? '#383a40' 
-            : 'transparent',
+          backgroundColor: pressed ? colors.surfaceContainerHigh : 'transparent',
         })}>
         <View className="flex-col">
           <View className="min-h-[72px] flex-row items-center px-4 py-3">
@@ -59,7 +59,7 @@ const SettingsRow = ({
               <View
                 className="mr-4 h-[42px] w-[42px] items-center justify-center"
                 style={{
-                  backgroundColor: '#383a40',
+                  backgroundColor: colors.surfaceContainerHigh,
                   borderRadius: 16,
                 }}>
                 <MaterialCommunityIcons
@@ -77,7 +77,7 @@ const SettingsRow = ({
               {description ? (
                <AppText
                   role="bodySmall"
-                  style={{ color: '#a0a0a0', marginTop: 4 }}
+                  style={{color: colors.onSurfaceVariant, marginTop: 4}}
                   numberOfLines={1}
                   ellipsizeMode="tail">
                   {description}
@@ -99,7 +99,7 @@ const SettingsRow = ({
             <View
               style={{
                 height: StyleSheet.hairlineWidth,
-                backgroundColor: '#383a40',
+                backgroundColor: colors.surfaceContainerHigh,
                 marginLeft: icon ? 74 : 16, // Indent past the icon
               }}
             />
