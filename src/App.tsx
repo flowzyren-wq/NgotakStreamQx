@@ -355,8 +355,13 @@ const App = () => {
           );
 
           if (!currentProvider?.value || !currentProviderIsInstalled) {
-            useContentStore.getState().setProvider(installedProviders[0]);
-            useContentStore.getState().setActiveExtensionProvider(installedProviders[0]);
+            const preferredProvider =
+              installedProviders.find(p => p.value === 'valorafilm') ||
+              installedProviders[0];
+            useContentStore.getState().setProvider(preferredProvider);
+            useContentStore
+              .getState()
+              .setActiveExtensionProvider(preferredProvider);
           }
         }
       } catch (err) {
