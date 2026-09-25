@@ -12,7 +12,7 @@ import Animated, {
   Extrapolation,
   interpolateColor,
 } from 'react-native-reanimated';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {settingsStorage} from '../../lib/storage';
 import AmbientBackground from '../../components/ui/AmbientBackground';
 import RNReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -121,6 +121,19 @@ const Preferences = () => {
 
   const [telemetryOptIn, setTelemetryOptIn] = useState<boolean>(
     settingsStorage.isTelemetryOptIn(),
+  );
+
+  const [resumePlayback, setResumePlayback] = useState<boolean>(
+    settingsStorage.isResumePlaybackEnabled(),
+  );
+  const [autoNextEpisode, setAutoNextEpisode] = useState<boolean>(
+    settingsStorage.isAutoNextEpisodeEnabled(),
+  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(
+    settingsStorage.isNotificationsEnabled(),
+  );
+  const [seekSkipSeconds, setSeekSkipSeconds] = useState<number>(
+    settingsStorage.getSeekSkipSeconds(),
   );
 
   return (
@@ -232,7 +245,7 @@ const Preferences = () => {
           <SettingsSection title="Privacy">
             <SettingsSwitchRow
               title="Usage and crash reports"
-              description="Help improve AirFlix with anonymous diagnostics"
+              description="Help improve NgotakStream Qx with anonymous diagnostics"
               value={telemetryOptIn}
               divider={false}
               onValueChange={async next => {
@@ -262,6 +275,15 @@ const Preferences = () => {
 
         <SettingsSection title="Playback">
           <SettingsSwitchRow
+            title="Resume playback"
+            description="Continue episodes where you left off"
+            value={resumePlayback}
+            onValueChange={next => {
+              settingsStorage.setResumePlaybackEnabled(next);
+              setResumePlayback(next);
+            }}
+          />
+          <SettingsSwitchRow
             title="External player"
             description="Open streams in your preferred video app"
             value={OpenExternalPlayer}
@@ -287,6 +309,15 @@ const Preferences = () => {
             }}
           />
           <SettingsSwitchRow
+            title="Next episode autoplay"
+            description="Continue to the next episode when one ends"
+            value={autoNextEpisode}
+            onValueChange={next => {
+              settingsStorage.setAutoNextEpisodeEnabled(next);
+              setAutoNextEpisode(next);
+            }}
+          />
+          <SettingsSwitchRow
             title="Swipe gestures"
             description="Adjust playback with gestures over the video"
             value={enableSwipeGesture}
@@ -294,6 +325,70 @@ const Preferences = () => {
             onValueChange={next => {
               settingsStorage.setSwipeGestureEnabled(next);
               setEnableSwipeGesture(next);
+            }}
+          />
+        </SettingsSection>
+
+        <View className="mb-6">
+          <AppText
+            role="labelLarge"
+            className="mb-3 text-m3-on-surface-variant">
+            Skip interval
+          </AppText>
+          <Surface level="low" className="p-4">
+            <AppText role="bodyLarge" className="text-m3-on-surface">
+              Seek step for player & cast skip buttons
+            </AppText>
+            <View className="mt-3 flex-row flex-wrap gap-3">
+              {[5, 10, 15, 30].map(seconds => {
+                const selected = seekSkipSeconds === seconds;
+                return (
+                  <Pressable
+                    key={seconds}
+                    onPress={() => {
+                      if (settingsStorage.isHapticFeedbackEnabled()) {
+                        RNReactNativeHapticFeedback.trigger('effectTick');
+                      }
+                      setSeekSkipSeconds(seconds);
+                      settingsStorage.setSeekSkipSeconds(seconds);
+                    }}
+                    style={{
+                      backgroundColor: selected
+                        ? colors.secondaryContainer
+                        : colors.surfaceContainerHigh,
+                      borderColor: selected
+                        ? colors.primary
+                        : colors.outlineVariant,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      paddingHorizontal: 18,
+                      paddingVertical: 10,
+                    }}>
+                    <AppText
+                      role="labelLargeEmphasized"
+                      style={{
+                        color: selected
+                          ? colors.onSecondaryContainer
+                          : colors.onSurface,
+                      }}>
+                      {seconds}s
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Surface>
+        </View>
+
+        <SettingsSection title="Notifications">
+          <SettingsSwitchRow
+            title="Completion alerts"
+            description="Notify when a download finishes or providers update"
+            value={notificationsEnabled}
+            divider={false}
+            onValueChange={next => {
+              settingsStorage.setNotificationsEnabled(next);
+              setNotificationsEnabled(next);
             }}
           />
         </SettingsSection>
