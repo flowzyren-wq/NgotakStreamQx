@@ -22,7 +22,11 @@ import Animated, {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import {cacheStorage, settingsStorage} from '../../lib/storage';
-import {OrientationLocker, LANDSCAPE} from 'react-native-orientation-locker';
+import {beginViewingSession} from '../../lib/zustand/viewingStatsStore';
+import Orientation, {
+  OrientationLocker,
+  LANDSCAPE,
+} from 'react-native-orientation-locker';
 import VideoPlayer from '@8man/react-native-media-console';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -174,6 +178,27 @@ const getCastContentType = (streamUrl: string, streamType?: string) => {
   }
   return 'video/mp4';
 };
+
+const withTimeout = <T,>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`));
+    }, ms);
+    promise.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      error => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 
 const goFullScreen = () => {
   if (Platform.OS === 'android') {
@@ -348,6 +373,7 @@ const Player = ({route}: Props): React.JSX.Element => {
     setExternalSubs,
     isLoading: streamLoading,
     error: streamError,
+    refetch,
     switchToNextStream,
   } = useStream({
     activeEpisode,
@@ -500,6 +526,50 @@ const Player = ({route}: Props): React.JSX.Element => {
     onProgressSaved: saveContinueWatchingProgress,
   });
 
+  const viewingSessionRef = useRef<ReturnType<
+    typeof beginViewingSession
+  > | null>(null);
+  useEffect(() => {
+    const mediaId = continueWatchingId || activeEpisode?.link;
+    if (!mediaId) {
+      viewingSessionRef.current = null;
+      return;
+    }
+    const session = beginViewingSession({
+      mediaId,
+      title:
+        route.params.primaryTitle || activeEpisode?.title || 'Unknown title',
+      poster: route.params.poster?.poster || route.params.poster?.background,
+      infoUrl: route.params.infoUrl,
+      providerValue: route.params.providerValue || provider.value,
+      type: route.params.type,
+    });
+    viewingSessionRef.current = session;
+    return () => {
+      session.end();
+      viewingSessionRef.current = null;
+    };
+  }, [
+    activeEpisode?.link,
+    activeEpisode?.title,
+    continueWatchingId,
+    provider.value,
+    route.params.infoUrl,
+    route.params.poster?.background,
+    route.params.poster?.poster,
+    route.params.primaryTitle,
+    route.params.providerValue,
+    route.params.type,
+  ]);
+
+  const handleProgressWithStats = useCallback(
+    (e: any) => {
+      handleProgress(e);
+      viewingSessionRef.current?.ingest(e.currentTime);
+    },
+    [handleProgress],
+  );
+
   // Memoized values
   const playbacks = useMemo(
     () => [0.25, 0.5, 1.0, 1.25, 1.35, 1.5, 1.75, 2],
@@ -565,7 +635,8 @@ const Player = ({route}: Props): React.JSX.Element => {
       videoLoadedRef.current &&
       !resumeAppliedRef.current &&
       watchedDuration > 5 &&
-      videoPositionRef.current.position < 5
+      videoPositionRef.current.position < 5 &&
+      settingsStorage.isResumePlaybackEnabled()
     ) {
       playerRef.current?.seek(watchedDuration);
       resumeAppliedRef.current = true;
@@ -588,6 +659,7 @@ const Player = ({route}: Props): React.JSX.Element => {
     });
 
   const [processedStreamUrl, setProcessedStreamUrl] = useState<string>('');
+  const [streamFailed, setStreamFailed] = useState(false);
   const canCastStream = useMemo(
     () =>
       !Platform.isTV &&
@@ -654,6 +726,7 @@ const Player = ({route}: Props): React.JSX.Element => {
 
       setProcessedStreamUrl('');
       setIsResolvingStream(true);
+      setStreamFailed(false);
 
       const isTorrent =
         selectedStream.type === 'torrent' ||
@@ -678,7 +751,11 @@ const Player = ({route}: Props): React.JSX.Element => {
           setTorrentState('Fetching Metadata...');
           setTorrentDownloaded(0);
           setTorrentDownloadSpeed(0);
-          const addData = await torrentManager.addTorrent(selectedStream.link);
+          const addData = await withTimeout(
+            torrentManager.addTorrent(selectedStream.link),
+            60000,
+            'Fetching torrent metadata',
+          );
           const infoHash = addData.infoHash;
           if (!isMounted) {
             torrentManager.deleteTorrent(infoHash, true).catch(() => {});
@@ -703,19 +780,30 @@ const Player = ({route}: Props): React.JSX.Element => {
           }
 
           if (isMounted) {
-            const videoFileIndex = await findVideoFileIndex(infoHash);
+            const videoFileIndex = await withTimeout(
+              findVideoFileIndex(infoHash),
+              30000,
+              'Reading torrent file list',
+            );
             const preparation = torrentManager.prepareVideoFile(
               infoHash,
               videoFileIndex,
             );
-            const streamUrl = await torrentManager.getStreamUrl(
-              infoHash,
-              videoFileIndex,
+            const streamUrl = await withTimeout(
+              torrentManager.getStreamUrl(infoHash, videoFileIndex),
+              30000,
+              'Starting torrent stream',
             );
             console.log('Torrent stream URL:', streamUrl);
             setProcessedStreamUrl(streamUrl);
             setIsResolvingStream(false);
-            await preparation;
+            await withTimeout(
+              preparation,
+              60000,
+              'Preparing torrent playback',
+            ).catch(error => {
+              console.warn('Torrent preparation failed:', error);
+            });
           }
         } catch (error) {
           console.error('Failed to start torrent stream:', error);
@@ -723,6 +811,7 @@ const Player = ({route}: Props): React.JSX.Element => {
             setIsResolvingStream(false);
             if (!switchToNextStream()) {
               ToastAndroid.show('Failed to load torrent', ToastAndroid.SHORT);
+              setStreamFailed(true);
             }
           }
         }
@@ -1131,6 +1220,15 @@ const Player = ({route}: Props): React.JSX.Element => {
     };
   }, [navigation]);
 
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', () => {
+        exitFullScreen();
+        Orientation.lockToPortrait();
+      }),
+    [navigation],
+  );
+
   // Reset track selections when stream changes
   useEffect(() => {
     setSelectedAudioTrackIndex(0);
@@ -1285,10 +1383,10 @@ const Player = ({route}: Props): React.JSX.Element => {
           // High-bitrate 4K streams can otherwise fill Android's complete
           // Java heap: react-native-video defaults the allocator limit to
           // 100%, then the codec has no room left for output buffers.
-          minBufferMs: 8000,
+          minBufferMs: 5000,
           maxBufferMs: 20000,
-          bufferForPlaybackMs: 1500,
-          bufferForPlaybackAfterRebufferMs: 3000,
+          bufferForPlaybackMs: 800,
+          bufferForPlaybackAfterRebufferMs: 1500,
           backBufferDurationMs: 0,
           maxHeapAllocationPercent: 0.18,
           minBufferMemoryReservePercent: 0.2,
@@ -1306,7 +1404,24 @@ const Player = ({route}: Props): React.JSX.Element => {
           imageUri: route.params?.poster?.poster,
         },
       },
-      onProgress: handleProgress,
+      onProgress: handleProgressWithStats,
+      onEnd: () => {
+        if (!settingsStorage.isAutoNextEpisodeEnabled()) {
+          return;
+        }
+        const episodeList = route.params?.episodeList;
+        const currentIndex = episodeList
+          ? episodeList.indexOf(activeEpisode)
+          : -1;
+        if (
+          episodeList &&
+          currentIndex >= 0 &&
+          currentIndex < episodeList.length - 1
+        ) {
+          setActiveEpisode(episodeList[currentIndex + 1]);
+          hasSetInitialTracksRef.current = false;
+        }
+      },
       onLoad: (e: any) => {
         handleVideoLoad(e?.naturalSize);
         videoLoadedRef.current = true;
@@ -1336,11 +1451,11 @@ const Player = ({route}: Props): React.JSX.Element => {
       seekColor: primary,
       showDuration: true,
       toggleResizeModeOnFullscreen: false,
-      fullscreenOrientation: 'landscape' as const,
+      fullscreenOrientation: 'default' as const,
       fullscreenAutorotate: true,
       onShowControls: () => setShowControls(true),
       onHideControls: () => setShowControls(false),
-      rewindTime: 10,
+      rewindTime: settingsStorage.getSeekSkipSeconds(),
       isFullscreen: true,
       disableFullscreen: true,
       disableVolume: true,
@@ -1377,7 +1492,7 @@ const Player = ({route}: Props): React.JSX.Element => {
       selectedStream,
       route.params,
       activeEpisode,
-      handleProgress,
+      handleProgressWithStats,
       watchedDuration,
       playbackRate,
       setPlaybackRate,
@@ -1427,7 +1542,11 @@ const Player = ({route}: Props): React.JSX.Element => {
   }
 
   // Show error state
-  if (streamError && !isCasting && selectedStream?.type !== 'local') {
+  if (
+    (streamError || streamFailed) &&
+    !isCasting &&
+    selectedStream?.type !== 'local'
+  ) {
     return (
       <SafeAreaView className="bg-black flex-1 justify-center items-center">
         <StatusBar translucent={true} hidden={true} />
@@ -1439,6 +1558,23 @@ const Player = ({route}: Props): React.JSX.Element => {
           className="bg-red-600 px-4 py-2 rounded-md"
           onPress={() => navigation.goBack()}>
           <AppText className="text-white">Go Back</AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className="mt-3 bg-white/15 px-4 py-2 rounded-md"
+          onPress={() => {
+            setStreamFailed(false);
+            if (streamError) {
+              refetch();
+              return;
+            }
+            if (switchToNextStream()) {
+              return;
+            }
+            if (selectedStream?.link) {
+              setSelectedStream({...selectedStream});
+            }
+          }}>
+          <AppText className="text-white">Try again</AppText>
         </TouchableOpacity>
       </SafeAreaView>
     );
