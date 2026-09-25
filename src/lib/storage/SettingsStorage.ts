@@ -1,4 +1,5 @@
 import {mainStorage} from './StorageService';
+import type {ThemeProfile} from '../../theme/themeProfiles';
 import {
   DownloadLocationConfig,
   getDownloadLocationDisplayValue,
@@ -27,9 +28,8 @@ export enum SettingsKeys {
   HAPTIC_FEEDBACK = 'hapticFeedback',
   NOTIFICATIONS_ENABLED = 'notificationsEnabled',
 
-  // Update settings
-  AUTO_CHECK_UPDATE = 'autoCheckUpdate',
-  AUTO_DOWNLOAD = 'autoDownload',
+  // Playback flow settings
+  AUTO_NEXT_EPISODE = 'autoNextEpisode',
 
   // Player settings
   SHOW_MEDIA_CONTROLS = 'showMediaControls',
@@ -63,7 +63,18 @@ export enum SettingsKeys {
   DOH_ENABLED = 'dohEnabled',
   DOH_PROVIDER = 'dohProvider',
   DOH_CUSTOM_URL = 'dohCustomUrl',
+
+  // Theme profiles
+  THEME_PROFILES = 'themeProfiles',
+  ACTIVE_THEME_PROFILE = 'activeThemeProfile',
+
+  // Network / playback preferences
+  NETWORK_RETRY_COUNT = 'networkRetryCount',
+  RESUME_PLAYBACK = 'resumePlayback',
+  SEEK_SKIP_SECONDS = 'seekSkipSeconds',
 }
+
+const SEEK_SKIP_OPTIONS = [5, 10, 15, 30];
 
 /**
  * Settings storage manager
@@ -188,21 +199,13 @@ export class SettingsStorage {
     mainStorage.setBool(SettingsKeys.NOTIFICATIONS_ENABLED, enabled);
   }
 
-  // Update settings
-  isAutoCheckUpdateEnabled(): boolean {
-    return mainStorage.getBool(SettingsKeys.AUTO_CHECK_UPDATE, true);
+  // Playback flow settings
+  isAutoNextEpisodeEnabled(): boolean {
+    return mainStorage.getBool(SettingsKeys.AUTO_NEXT_EPISODE, true);
   }
 
-  setAutoCheckUpdateEnabled(enabled: boolean): void {
-    mainStorage.setBool(SettingsKeys.AUTO_CHECK_UPDATE, enabled);
-  }
-
-  isAutoDownloadEnabled(): boolean {
-    return mainStorage.getBool(SettingsKeys.AUTO_DOWNLOAD, false);
-  }
-
-  setAutoDownloadEnabled(enabled: boolean): void {
-    mainStorage.setBool(SettingsKeys.AUTO_DOWNLOAD, enabled);
+  setAutoNextEpisodeEnabled(enabled: boolean): void {
+    mainStorage.setBool(SettingsKeys.AUTO_NEXT_EPISODE, enabled);
   }
 
   // Player settings
@@ -388,6 +391,88 @@ export class SettingsStorage {
 
   setDohCustomUrl(url: string): void {
     mainStorage.setString(SettingsKeys.DOH_CUSTOM_URL, url);
+  }
+
+  // Theme profiles
+  getThemeProfiles(): ThemeProfile[] {
+    const raw = mainStorage.getString(SettingsKeys.THEME_PROFILES);
+    if (!raw) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed.filter(
+        item =>
+          !!item &&
+          typeof item === 'object' &&
+          typeof item.id === 'string' &&
+          typeof item.name === 'string',
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  setThemeProfiles(profiles: ThemeProfile[]): void {
+    mainStorage.setString(SettingsKeys.THEME_PROFILES, JSON.stringify(profiles));
+  }
+
+  getActiveThemeProfileId(): string | null {
+    return mainStorage.getString(SettingsKeys.ACTIVE_THEME_PROFILE) || null;
+  }
+
+  setActiveThemeProfileId(id: string | null): void {
+    if (id !== null) {
+      mainStorage.setString(SettingsKeys.ACTIVE_THEME_PROFILE, id);
+    } else {
+      mainStorage.setString(SettingsKeys.ACTIVE_THEME_PROFILE, '');
+    }
+  }
+
+  // Network retry count (0-5)
+  getNetworkRetryCount(): number {
+    const value = mainStorage.getNumber(SettingsKeys.NETWORK_RETRY_COUNT);
+    const count =
+      typeof value === 'number' && Number.isFinite(value)
+        ? Math.round(value)
+        : 3;
+    return Math.min(5, Math.max(0, count));
+  }
+
+  setNetworkRetryCount(count: number): void {
+    mainStorage.setNumber(
+      SettingsKeys.NETWORK_RETRY_COUNT,
+      Math.min(5, Math.max(0, Math.round(count))),
+    );
+  }
+
+  // Resume playback
+  isResumePlaybackEnabled(): boolean {
+    return mainStorage.getBool(SettingsKeys.RESUME_PLAYBACK, true);
+  }
+
+  setResumePlaybackEnabled(enabled: boolean): void {
+    mainStorage.setBool(SettingsKeys.RESUME_PLAYBACK, enabled);
+  }
+
+  // Seek skip seconds (5 / 10 / 15 / 30)
+  getSeekSkipSeconds(): number {
+    const value = mainStorage.getNumber(SettingsKeys.SEEK_SKIP_SECONDS);
+    const seconds =
+      typeof value === 'number' && Number.isFinite(value)
+        ? Math.round(value)
+        : 10;
+    return SEEK_SKIP_OPTIONS.includes(seconds) ? seconds : 10;
+  }
+
+  setSeekSkipSeconds(seconds: number): void {
+    mainStorage.setNumber(
+      SettingsKeys.SEEK_SKIP_SECONDS,
+      SEEK_SKIP_OPTIONS.includes(seconds) ? seconds : 10,
+    );
   }
 }
 
