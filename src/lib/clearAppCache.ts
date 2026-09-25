@@ -6,7 +6,12 @@ import {clearImageAccentCache} from './imageAccent';
 import {clearDownloadedVideoThumbnailMemoryCache} from './downloadThumbnailCache';
 import {cacheStorageService} from './storage';
 
-const PRESERVED_CACHE_ENTRIES: Set<string> = new Set([]);
+// Staging download (lihat downloadDestination.ts & hlsDownloader2.ts) tidak
+// boleh ikut terhapus, kalau tidak download yang sedang berjalan jadi rusak.
+const PRESERVED_CACHE_ENTRIES: Set<string> = new Set([
+  'downloads',
+  'hls_segments',
+]);
 
 const clearFilesystemCache = async (): Promise<void> => {
   const entries = await RNFS.readDir(RNFS.CachesDirectoryPath).catch(() => []);
